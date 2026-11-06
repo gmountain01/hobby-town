@@ -263,6 +263,9 @@ select{font:inherit;font-size:15px;padding:8px 10px;border:1.5px solid var(--lin
 .qpic{display:flex;justify-content:center;gap:6px;padding:4px 0}.qpic .ico{width:64px;height:64px;filter:drop-shadow(0 0 1.5px #fff) drop-shadow(0 2px 2px rgba(23,35,59,.25))}
 .qpic span{align-self:center;font-family:var(--display);font-size:22px}
 #feed{position:fixed;left:calc(env(safe-area-inset-left,0px) + 12px);bottom:calc(env(safe-area-inset-bottom,0px) + 84px);z-index:2;width:min(64vw,300px);pointer-events:none}
+#feed .fhead{display:none}#feed.open .fhead{display:flex;align-items:center;justify-content:space-between;color:#fff;padding:0 2px 6px;font-size:14px}
+#feedX{width:36px;height:36px;border-radius:50%;border:0;background:rgba(255,255,255,.2);color:#fff;font-size:22px;line-height:1}
+.tray-open #feed:not(.open){visibility:hidden}
 #feed.open{z-index:5;pointer-events:auto;background:rgba(23,35,59,.78);border-radius:14px;padding:8px;bottom:calc(env(safe-area-inset-bottom,0px) + 84px)}
 #feed.up{bottom:calc(env(safe-area-inset-bottom,0px) + 200px)}
 #feedList{display:flex;flex-direction:column;gap:3px;max-height:34vh;overflow-y:auto}
@@ -348,7 +351,7 @@ select{font:inherit;font-size:15px;padding:8px 10px;border:1.5px solid var(--lin
   <div id="emoTray" role="group" aria-label="감정" hidden></div>
   <div class="emorow"><button id="emoBtn" type="button" aria-label="감정" aria-expanded="false"><svg class="ico" aria-hidden="true"><use href="#i-e_happy"/></svg></button><button id="feedBtn" type="button" aria-label="마을 소식" aria-expanded="false"><svg class="ico" aria-hidden="true"><use href="#i-memo"/></svg></button><button id="sndBtn" type="button" aria-label="소리"></button></div>
 </div>
-<div id="feed" hidden aria-live="polite"><div id="feedList"></div></div>
+<div id="feed" hidden aria-live="polite"><div class="fhead"><b>마을 소식</b><button id="feedX" type="button" aria-label="닫기">×</button></div><div id="feedList"></div></div>
 <div id="gamePanel" hidden>
   <div class="gp-top"><span class="gp-score" id="gpScore"></span><button class="x" id="gpExit" type="button" aria-label="닫기">×</button></div>
   <div class="gp-bar"><i id="gpBar"></i></div>
@@ -1178,7 +1181,11 @@ function drawFeed(){const now=Date.now();const list=feedOpen?feedItems.slice(-40
   $('#feedList').innerHTML=list.map(x=>'<div class="fl" style="opacity:'+(feedOpen?1:Math.max(.15,1-Math.max(0,now-x.t-7000)/5000))+'">'+x.html+'</div>').join('');
   const fl=$('#feedList');if(feedOpen)fl.scrollTop=fl.scrollHeight;}
 setInterval(()=>{if(!feedOpen&&feedItems.length)drawFeed();},1000);
-$('#feedBtn').onclick=()=>{feedOpen=!feedOpen;$('#feed').classList.toggle('open',feedOpen);$('#feedBtn').setAttribute('aria-expanded',String(feedOpen));drawFeed();};
+// 마을 소식과 감정 스티커 창은 하나만 열려요. 땅을 누르면 둘 다 닫혀요
+function setFeed(open){feedOpen=open;$('#feed').classList.toggle('open',feedOpen);$('#feedBtn').setAttribute('aria-expanded',String(feedOpen));if(open)setTray(false);drawFeed();}
+function setTray(open){const t=$('#emoTray');if(!t)return;t.hidden=!open;$('#emoBtn').setAttribute('aria-expanded',String(open));document.body.classList.toggle('tray-open',open);if(open&&feedOpen)setFeed(false);}
+$('#feedBtn').onclick=()=>setFeed(!feedOpen);
+$('#feedX').onclick=()=>setFeed(false);
 const actLine=(sp,h)=>icw(h)+' '+esc(P[sp.place].ko+'에서 '+act(h));
 function sayMe(text){bubble(player,text);pub({say:{text,ts:Date.now()}});feed(meWho()+': '+esc(text));}
 function apptText(day,hour,place){day=WEEK.includes(day)?day:'토요일';hour=(Number.isInteger(hour)&&hour>=0&&hour<24)?hour:15;const pk=P[place]?P[place].ko:'학교';
@@ -1583,9 +1590,9 @@ function showEmo(ent,k){if(!EMOS.includes(k)||!ent.g)return;sfx('emo');if(ent.em
   ent.emoT=tag('emo',ic(k),()=>ent.g.position,3.9);ent.emoTo=setTimeout(()=>{if(ent.emoT){untag(ent.emoT);ent.emoT=null;}},3200);}
 let lastEmo=0;
 $('#emoTray').innerHTML=EMOS.map(k=>'<button type="button" data-emo="'+k+'" aria-label="'+k.slice(2)+'">'+ic(k)+'</button>').join('');
-$('#emoBtn').onclick=()=>{const t=$('#emoTray');t.hidden=!t.hidden;$('#emoBtn').setAttribute('aria-expanded',String(!t.hidden));};
+$('#emoBtn').onclick=()=>setTray($('#emoTray').hidden);
 $('#emoTray').onclick=ev=>{const b=ev.target.closest('[data-emo]');if(!b||!player.g)return;const now=Date.now();if(now-lastEmo<900)return;lastEmo=now;
-  const k=b.dataset.emo;showEmo(player,k);pub({emo:{k,ts:now}});logEv('emo',{k});feed(meWho()+' '+ic(k));
+  const k=b.dataset.emo;setTray(false);showEmo(player,k);pub({emo:{k,ts:now}});logEv('emo',{k});feed(meWho()+' '+ic(k));
   // 가까이 있는 NPC가 스티커로 대답해요
   let best=null,bd=4.5;for(const n of npcs.concat([...customNpcs.values()])){const d=d2(player.g.position,n.g.position.x,n.g.position.z);if(d<bd){bd=d;best=n;}}
   if(best)setTimeout(()=>showEmo(best,EMO_REPLY[k]),800);
@@ -1713,7 +1720,7 @@ function pubDest(x,z){pub({x:Math.round(x*10)/10,z:Math.round(z*10)/10});}
 const ray=new THREE.Raycaster(), ndc=new THREE.Vector2();
 let down=null, pendingTalk=null, pendingSpot=null;
 const ground=new THREE.Plane(new THREE.Vector3(0,1,0),0);
-canvas.addEventListener('pointerdown',e=>{down={x:e.clientX,y:e.clientY};busyNow();});
+canvas.addEventListener('pointerdown',e=>{down={x:e.clientX,y:e.clientY};busyNow();if(!$('#emoTray').hidden)setTray(false);if(feedOpen)setFeed(false);});
 document.addEventListener('pointerdown',busyNow,true);
 canvas.addEventListener('pointerup',e=>{
   if(!down||!player.g)return;const moved=Math.hypot(e.clientX-down.x,e.clientY-down.y);down=null;if(moved>12)return;
