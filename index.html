@@ -141,6 +141,10 @@ th{background:var(--tint);font-weight:700}
 .namerow{display:flex;gap:6px;align-items:center}.namerow input{flex:1;min-width:0;font-size:19px}
 .namerow .pick{white-space:nowrap}
 #nick.need{border-color:var(--bad);animation:shake .12s linear 4}
+.needmsg{background:#fff1f0;border:2px solid var(--bad);color:#8a1f18;border-radius:12px;padding:10px 12px;display:flex;flex-direction:column;gap:4px;font-size:17px;font-weight:700}
+.needmsg .ico{width:22px;height:22px;vertical-align:-5px}
+.needbox{outline:3px solid var(--bad);outline-offset:4px;border-radius:12px;animation:shake .12s linear 4}
+.qmark{display:inline-grid;place-items:center;width:34px;height:34px;border-radius:50%;background:#e3e9f3;color:#5a6680;font-size:22px}
 #nameKb button{height:40px}
 .hgrid{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:6px}
 @media (min-width:560px){.hgrid{grid-template-columns:repeat(6,minmax(0,1fr))}}
@@ -389,6 +393,7 @@ select{font:inherit;font-size:15px;padding:8px 10px;border:1.5px solid var(--lin
         <div class="hgrid" id="hgrid"></div>
       </div>
       <div class="field"><button class="btn ghost" id="soundBtn" type="button"><svg class="ico"><use href="#i-spk"/></svg> <span data-i="sound"></span></button><p class="hint" id="soundMsg"></p></div>
+      <div id="needMsg" class="needmsg" role="alert" hidden></div>
       <button class="btn" id="start" type="button" data-i="enter"></button>
       <p class="hint" data-i="howto"></p>
     </div>
@@ -535,6 +540,8 @@ const HOURS=[10,11,12,13,14,15,16,17,18];
 /* ---------- state ---------- */
 const KEY='hobbytown-v1';
 let saved={};try{saved=JSON.parse(localStorage.getItem(KEY)||'{}')||{};}catch(e){}
+// 처음 온 학생은 색깔과 취미를 직접 골라야 들어갈 수 있어요 (전에 골랐으면 그대로)
+const picked={color:COLORS.includes(saved.color),hobby:HK.includes(saved.hobby)};
 const me={name:saved.name||'',color:COLORS.includes(saved.color)?saved.color:COLORS[0],hobby:HK.includes(saved.hobby)?saved.hobby:HK[Math.floor(Math.random()*HK.length)],country:COUNTRIES.some(c=>c.id===saved.country)?saved.country:'',lang:LANGS[saved.lang]?saved.lang:'en'};
 const prog=Object.assign({visited:[],interviews:{},demo:{'이':0,'그':0,'저':0},appt:null,met:false,notes:[]},saved.prog||{});
 if(!Array.isArray(prog.notes))prog.notes=[];
@@ -1929,12 +1936,13 @@ window.addEventListener('hashchange',()=>{if(DEPLOYED&&isTeacher()&&$('#dash').h
 
 /* ---------- intro ---------- */
 const sw=$('#swatches');
-function drawSw(){sw.innerHTML=COLORS.map(c=>'<button class="sw" type="button" style="background:'+c+'" data-c="'+c+'" aria-label="'+c+'" aria-pressed="'+(c===me.color)+'"></button>').join('');}
-sw.onclick=e=>{const b=e.target.closest('[data-c]');if(b){me.color=b.dataset.c;drawSw();}};drawSw();
-function drawHobby(){const pl=pko(me.hobby);$('#hName').innerHTML=icw(me.hobby)+esc(me.hobby);$('#hEn').innerHTML=icw(pl)+' '+esc(pl)+'에서 '+esc(act(me.hobby));}
-function drawHGrid(){$('#hgrid').innerHTML=HK.map(h=>'<button class="hb" type="button" data-h="'+h+'" aria-pressed="'+(h===me.hobby)+'">'+icw(h)+esc(h)+'</button>').join('');}
+function drawSw(){sw.innerHTML=COLORS.map(c=>'<button class="sw" type="button" style="background:'+c+'" data-c="'+c+'" aria-label="'+c+'" aria-pressed="'+(picked.color&&c===me.color)+'"></button>').join('');}
+sw.onclick=e=>{const b=e.target.closest('[data-c]');if(b){me.color=b.dataset.c;picked.color=true;drawSw();checkNeed(false);}};drawSw();
+function drawHobby(){if(!picked.hobby){$('#hName').innerHTML='<span class="qmark">?</span>';$('#hEn').innerHTML=ic('tap')+' 아래에서 골라요';return;}
+  const pl=pko(me.hobby);$('#hName').innerHTML=icw(me.hobby)+esc(me.hobby);$('#hEn').innerHTML=icw(pl)+' '+esc(pl)+'에서 '+esc(act(me.hobby));}
+function drawHGrid(){$('#hgrid').innerHTML=HK.map(h=>'<button class="hb" type="button" data-h="'+h+'" aria-pressed="'+(picked.hobby&&h===me.hobby)+'">'+icw(h)+esc(h)+'</button>').join('');}
 drawHobby();drawHGrid();
-$('#hgrid').onclick=ev=>{const b=ev.target.closest('[data-h]');if(!b)return;me.hobby=b.dataset.h;if(me.name)logEv('hobby',{h:me.hobby});drawHobby();drawHGrid();speak(me.hobby);};
+$('#hgrid').onclick=ev=>{const b=ev.target.closest('[data-h]');if(!b)return;me.hobby=b.dataset.h;picked.hobby=true;if(me.name)logEv('hobby',{h:me.hobby});drawHobby();drawHGrid();speak(me.hobby);checkNeed(false);};
 $('#countries').innerHTML=COUNTRIES.map((c,i)=>(c.r&&(i===0||COUNTRIES[i-1].r!==c.r)?'<h3 class="creg">'+esc(c.r)+'</h3>':(!c.r?'<h3 class="creg"></h3>':''))+'<button class="cty" type="button" data-cty="'+c.id+'" aria-pressed="'+(c.id===me.country)+'"><span class="f">'+c.f+'</span><b>'+esc(c.n)+'</b><small>'+esc(c.ko)+'</small></button>').join('');
 function showStep2(){const c=ctyOf();$('#step1').hidden=true;$('#step2').hidden=false;$('#ctyTitle').textContent=c.f+' '+c.ko;
   applyI18n();$('#nick').placeholder=T('namePh');$('#soundMsg').textContent='';}
@@ -1963,7 +1971,8 @@ $('#nameKb').addEventListener('click',ev=>{const b=ev.target.closest('[data-nk]'
   if(k==='shift'){nk.shift=!nk.shift;}
   else if(k==='bk'){if(nk.jamo.length)nk.jamo.pop();else nk.base=nk.base.slice(0,-1);}
   else if(k.startsWith('k:')&&nkText().length<12){const c=k.slice(2);if(c===' '){nk.base=nkText()+' ';nk.jamo=[];}else nk.jamo.push(c);nk.shift=false;}
-  $('#nick').value=nkText();drawNameKb();});
+  $('#nick').value=nkText();drawNameKb();checkNeed(false);});
+$('#nick').addEventListener('input',()=>checkNeed(false));
 $('#nameKbBtn').onclick=()=>{if(nk.on){nk.base=nkText();nk.jamo=[];nk.on=false;drawNameKb();$('#nick').focus();}
   else{nk.base=$('#nick').value.slice(0,12);nk.jamo=[];nk.on=true;$('#nick').blur();drawNameKb();}};
 $('#nick').addEventListener('input',()=>{if(!nk.on){nk.base=$('#nick').value;}});
@@ -1972,8 +1981,21 @@ drawNameKb();
 applyI18n();
 $('#sndBtn').onclick=()=>{audioInit();if(AC)AC.resume().catch(()=>{});sndMode=(sndMode+2)%3;try{localStorage.setItem('ht-snd',String(sndMode));}catch(e){}soundApply();sfx('pop');
   toastMsg(ic(sndMode===2?'music':sndMode===1?'spk':'phoneoff')+' '+['소리 꺼요','효과음만','음악 + 효과음'][sndMode],'');};
+// 들어가기 전에 빠진 것을 알려 줘요: 이름 · 색깔 · 취미
+function checkNeed(show){const miss=[];
+  if(!$('#nick').value.trim())miss.push({el:$('#nick'),box:$('#nick').closest('.field'),t:ic('pencil')+' 이름을 써 주세요'});
+  if(!picked.color)miss.push({el:$('#swatches'),box:$('#swatches').closest('.field'),t:ic('palette')+' 색깔을 골라 주세요'});
+  if(!picked.hobby)miss.push({el:$('#hgrid'),box:$('#hgrid').closest('.field'),t:ic('cards')+' 취미를 골라 주세요'});
+  const m=$('#needMsg');
+  if(!miss.length){m.hidden=true;return true;}
+  if(show||!m.hidden){m.innerHTML=miss.map(x=>'<div>'+x.t+'</div>').join('');m.hidden=false;}
+  if(show){miss.forEach(x=>{x.box.classList.remove('needbox');void x.box.offsetWidth;x.box.classList.add('needbox');setTimeout(()=>x.box.classList.remove('needbox'),1600);});
+    miss[0].box.scrollIntoView({behavior:'smooth',block:'center'});sfx('no');}
+  return false;}
 $('#start').onclick=()=>{
-  const n=$('#nick').value.trim().slice(0,12);if(!n){$('#nick').classList.add('need');setTimeout(()=>$('#nick').classList.remove('need'),900);if(!nk.on)$('#nick').focus();return;}
+  audioInit();
+  if(!checkNeed(true)){if(!$('#nick').value.trim()&&!nk.on)$('#nick').focus();return;}
+  const n=$('#nick').value.trim().slice(0,12);
   me.name=n;save();logEv('join',{hobby:me.hobby,color:me.color,lang:(navigator.language||'').slice(0,10)});
   player.g=makeAvatar(me.color,me.name);player.g.position.set(0,0,-8);
   tag('name me',esc(ctyOf().f+' '+me.name),()=>player.g.position,2.35);
