@@ -125,7 +125,8 @@ th{background:var(--tint);font-weight:700}
 .hb{display:flex;flex-direction:column;align-items:center;gap:2px;padding:8px 4px;border:1.5px solid var(--line);border-radius:12px;background:var(--paper);font-size:14px}
 .hb .ico{width:34px;height:34px;filter:drop-shadow(0 0 1.2px #fff) drop-shadow(0 1.5px 1.5px rgba(23,35,59,.2))}
 .hb[aria-pressed="true"]{border-color:var(--accent);background:var(--tint);font-weight:700}
-.countries{display:grid;grid-template-columns:repeat(auto-fill,minmax(112px,1fr));gap:8px}
+.countries{display:grid;grid-template-columns:repeat(auto-fill,minmax(100px,1fr));gap:8px}
+.countries .creg{grid-column:1/-1;margin:8px 0 0;font-size:13px;font-weight:700;color:var(--muted,#5a6680);letter-spacing:.02em}.countries .creg:first-child{margin-top:0}.countries .creg:empty{margin:4px 0 0;border-top:1px dashed var(--line,#d5deea)}
 .cty{display:flex;flex-direction:column;align-items:center;gap:2px;padding:10px 6px;border:1.5px solid var(--line);border-radius:14px;background:var(--paper)}
 .cty .f{font-size:30px;line-height:1.1}
 .cty b{font-size:14px;text-align:center;line-height:1.25}
@@ -377,13 +378,15 @@ met:':party: 만났어요! 미션 끝!',promise:':promise: 약속했어요!',sta
 const LANGS={en:'English',vi:'Tiếng Việt',zh:'中文',ru:'Русский',mn:'Монгол',uz:'Oʻzbekcha',id:'Bahasa Indonesia',es:'Español'};
 const LANG_AI={en:'English',vi:'Vietnamese',zh:'Simplified Chinese',ru:'Russian',mn:'Mongolian (Cyrillic)',uz:'Uzbek (Latin script)',id:'Indonesian',es:'Spanish'};
 /* 임시 국가 목록 — 참가국 파일이 오면 여기만 바꾸면 돼요 (f: 국기, n: 그 나라 말 이름, ko: 한국어 이름, l: 화면 언어) */
+// 참가 30개국 (2026-11-08 수업). 지역 순서·나라 순서는 참가자 명단 그대로
 const COUNTRIES=[
-  {id:'vn',f:'🇻🇳',n:'Việt Nam',ko:'베트남',l:'vi'},{id:'cn',f:'🇨🇳',n:'中国',ko:'중국',l:'zh'},
-  {id:'mn',f:'🇲🇳',n:'Монгол Улс',ko:'몽골',l:'mn'},{id:'uz',f:'🇺🇿',n:'Oʻzbekiston',ko:'우즈베키스탄',l:'uz'},
-  {id:'kz',f:'🇰🇿',n:'Қазақстан',ko:'카자흐스탄',l:'ru'},{id:'ru',f:'🇷🇺',n:'Россия',ko:'러시아',l:'ru'},
-  {id:'id',f:'🇮🇩',n:'Indonesia',ko:'인도네시아',l:'id'},{id:'ph',f:'🇵🇭',n:'Pilipinas',ko:'필리핀',l:'en'},
-  {id:'mx',f:'🇲🇽',n:'México',ko:'멕시코',l:'es'},{id:'pe',f:'🇵🇪',n:'Perú',ko:'페루',l:'es'},
-  {id:'us',f:'🇺🇸',n:'United States',ko:'미국',l:'en'},{id:'xx',f:'🌏',n:'Other',ko:'다른 나라',l:'en'}
+  {id:'vn',f:'🇻🇳',n:'Việt Nam',ko:'베트남',l:'vi',r:'아시아'},{id:'jp',f:'🇯🇵',n:'日本',ko:'일본',l:'ja',r:'아시아'},{id:'th',f:'🇹🇭',n:'ประเทศไทย',ko:'태국',l:'th',r:'아시아'},{id:'in',f:'🇮🇳',n:'भारत · India',ko:'인도',l:'hi',r:'아시아'},{id:'id',f:'🇮🇩',n:'Indonesia',ko:'인도네시아',l:'id',r:'아시아'},{id:'my',f:'🇲🇾',n:'Malaysia',ko:'말레이시아',l:'ms',r:'아시아'},{id:'mn',f:'🇲🇳',n:'Монгол Улс',ko:'몽골',l:'mn',r:'아시아'},{id:'lk',f:'🇱🇰',n:'ශ්‍රී ලංකාව',ko:'스리랑카',l:'si',r:'아시아'},{id:'la',f:'🇱🇦',n:'ລາວ',ko:'라오스',l:'lo',r:'아시아'},{id:'cn',f:'🇨🇳',n:'中国',ko:'중국',l:'zh',r:'아시아'},{id:'kh',f:'🇰🇭',n:'កម្ពុជា',ko:'캄보디아',l:'km',r:'아시아'},
+  {id:'uz',f:'🇺🇿',n:'Oʻzbekiston',ko:'우즈베키스탄',l:'uz',r:'러시아·중앙아시아'},{id:'ru',f:'🇷🇺',n:'Россия',ko:'러시아',l:'ru',r:'러시아·중앙아시아'},{id:'kz',f:'🇰🇿',n:'Қазақстан',ko:'카자흐스탄',l:'kk',r:'러시아·중앙아시아'},{id:'kg',f:'🇰🇬',n:'Кыргызстан',ko:'키르기스스탄',l:'ky',r:'러시아·중앙아시아'},
+  {id:'py',f:'🇵🇾',n:'Paraguay',ko:'파라과이',l:'es',r:'중남미'},{id:'mx',f:'🇲🇽',n:'México',ko:'멕시코',l:'es',r:'중남미'},{id:'br',f:'🇧🇷',n:'Brasil',ko:'브라질',l:'pt',r:'중남미'},{id:'ar',f:'🇦🇷',n:'Argentina',ko:'아르헨티나',l:'es',r:'중남미'},{id:'ec',f:'🇪🇨',n:'Ecuador',ko:'에콰도르',l:'es',r:'중남미'},{id:'gt',f:'🇬🇹',n:'Guatemala',ko:'과테말라',l:'es',r:'중남미'},
+  {id:'us',f:'🇺🇸',n:'United States',ko:'미국',l:'en',r:'북미'},{id:'ca',f:'🇨🇦',n:'Canada',ko:'캐나다',l:'en',r:'북미'},
+  {id:'fr',f:'🇫🇷',n:'France',ko:'프랑스',l:'fr',r:'유럽'},{id:'bg',f:'🇧🇬',n:'България',ko:'불가리아',l:'bg',r:'유럽'},{id:'ua',f:'🇺🇦',n:'Україна',ko:'우크라이나',l:'uk',r:'유럽'},{id:'tr',f:'🇹🇷',n:'Türkiye',ko:'튀르키예',l:'tr',r:'유럽'},{id:'de',f:'🇩🇪',n:'Deutschland',ko:'독일',l:'de',r:'유럽'},
+  {id:'nz',f:'🇳🇿',n:'New Zealand',ko:'뉴질랜드',l:'en',r:'오세아니아'},{id:'au',f:'🇦🇺',n:'Australia',ko:'호주',l:'en',r:'오세아니아'},
+  {id:'xx',f:'🌏',n:'Other',ko:'다른 나라',l:'en',r:''}
 ];
 const ICON={'수영':'swim','농구':'ball','게임':'game','산책':'walk','요리':'cook','등산':'hike','영화':'movie','자전거':'bike','음악':'music',
   '축구':'soccer','운동':'dumbbell','노래':'mic','책':'book','유튜브':'video','웹툰':'webtoon','SNS':'sns','티브이':'tv','공부':'pencil','운동장':'goal','도서관':'books','노래방':'krk',
@@ -394,7 +397,8 @@ const ic=n=>'<svg class="ico" aria-hidden="true"><use href="#i-'+n+'"/></svg>';
 const icw=w=>ICON[w]?ic(ICON[w]):'';
 // 아바타 이름 앞 국기: 교재 속 한국 친구들은 태극기, 나라 이름(한국어)이나 나라 코드로 찾아요
 const KR_FLAG='🇰🇷';
-const flagByKo=k=>{const c=COUNTRIES.find(x=>x.ko===k);return c?c.f:(k==='한국'||k==='대한민국'?KR_FLAG:'');};
+const NPC_FLAGS={'필리핀':'🇵🇭'}; // 참가국은 아니지만 NPC 고향
+const flagByKo=k=>{const c=COUNTRIES.find(x=>x.ko===k);return c?c.f:(NPC_FLAGS[k]||(k==='한국'||k==='대한민국'?KR_FLAG:''));};
 const flagById=id=>{const c=COUNTRIES.find(x=>x.id===id);return c?c.f:'';};
 const TOWN_CAP=10;
 // 취미는 교재(2·3과, 46~47쪽)에 나오는 말만 써요
@@ -1633,7 +1637,7 @@ function drawHobby(){const pl=pko(me.hobby);$('#hName').innerHTML=icw(me.hobby)+
 function drawHGrid(){$('#hgrid').innerHTML=HK.map(h=>'<button class="hb" type="button" data-h="'+h+'" aria-pressed="'+(h===me.hobby)+'">'+icw(h)+esc(h)+'</button>').join('');}
 drawHobby();drawHGrid();
 $('#hgrid').onclick=ev=>{const b=ev.target.closest('[data-h]');if(!b)return;me.hobby=b.dataset.h;if(me.name)logEv('hobby',{h:me.hobby});drawHobby();drawHGrid();speak(me.hobby);};
-$('#countries').innerHTML=COUNTRIES.map(c=>'<button class="cty" type="button" data-cty="'+c.id+'" aria-pressed="'+(c.id===me.country)+'"><span class="f">'+c.f+'</span><b>'+esc(c.n)+'</b><small>'+esc(c.ko)+'</small></button>').join('');
+$('#countries').innerHTML=COUNTRIES.map((c,i)=>(c.r&&(i===0||COUNTRIES[i-1].r!==c.r)?'<h3 class="creg">'+esc(c.r)+'</h3>':(!c.r?'<h3 class="creg"></h3>':''))+'<button class="cty" type="button" data-cty="'+c.id+'" aria-pressed="'+(c.id===me.country)+'"><span class="f">'+c.f+'</span><b>'+esc(c.n)+'</b><small>'+esc(c.ko)+'</small></button>').join('');
 function showStep2(){const c=ctyOf();$('#step1').hidden=true;$('#step2').hidden=false;$('#ctyTitle').textContent=c.f+' '+c.ko;
   applyI18n();$('#nick').placeholder=T('namePh');$('#soundMsg').textContent='';}
 $('#countries').onclick=ev=>{const b=ev.target.closest('[data-cty]');if(!b)return;me.country=b.dataset.cty;me.lang=ctyOf().l;save();showStep2();};
