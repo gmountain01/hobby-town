@@ -186,6 +186,17 @@ select{font:inherit;font-size:15px;padding:8px 10px;border:1.5px solid var(--lin
 .kocard b{display:block;font-size:18px}
 .kocard small{color:var(--muted);font-size:13px}
 .sendrow{display:flex;gap:6px}
+/* 접기: 대화창을 작게 줄여서 캐릭터들이 보이게 (마지막 말만 보여요) */
+.sheet .fold{font-size:22px;line-height:1;transition:transform .2s}.sheet.folded .fold{transform:rotate(180deg)}
+.sheet.folded > *:not(.sh-head):not(.chat){display:none!important}
+.sheet.folded .chat{max-height:none}.sheet.folded .chat > *:not(:last-child){display:none}
+@media (max-width:520px){
+  .sheet{max-height:62%;padding-top:10px;gap:8px}
+  .chat{max-height:19vh;gap:6px}
+  .msg .b{font-size:17px;padding:7px 11px}.msg .av{flex-basis:26px;height:26px;font-size:13px}
+  .chips{max-height:17vh;gap:5px}.chips .chip-c{font-size:17px;padding:8px 11px}
+  .kb button{height:38px;font-size:17px}.pv{min-height:42px}
+}
 .sendrow .btn{flex:1}
 .sendrow .btn[disabled]{opacity:.45}
 .note{display:flex;gap:8px;align-items:center;padding:7px 10px;border:1px solid var(--line);border-radius:10px}
@@ -1271,11 +1282,11 @@ function makerClick(b){
 
 /* ---------- sheets ---------- */
 const sheet=$('#sheet');
-function closeSheet(){sheet.hidden=true;sheet.classList.remove('tall');talkTarget=null;sheetKind=null;actS=null;syncTyping();if(gq){gq=null;if(typeof drawPanel==='function')drawPanel();}}
+function closeSheet(){sheet.hidden=true;sheet.classList.remove('folded');sheet.classList.remove('tall');talkTarget=null;sheetKind=null;actS=null;syncTyping();if(gq){gq=null;if(typeof drawPanel==='function')drawPanel();}}
 function head(title,color){return '<div class="sh-head">'+(color?'<span class="dot" style="background:'+validColor(color)+'"></span>':'')+'<h2>'+title+'</h2><button class="x" data-act="close" type="button" aria-label="닫기">×</button></div>';}
 function headTalk(e,step,total,done){
   let d='';for(let i=0;i<total;i++)d+='<i class="'+(done||i<step?'on':'')+'"></i>';
-  return '<div class="sh-head"><span class="dot" style="background:'+validColor(e.color||'#8a93a6')+'"></span><h2>'+esc((e.flag?e.flag+' ':'')+e.name)+'</h2><span class="dots" aria-label="'+(done?total:step)+'/'+total+'">'+d+'</span><button class="x" data-act="close" type="button" aria-label="닫기">×</button></div>';}
+  return '<div class="sh-head"><span class="dot" style="background:'+validColor(e.color||'#8a93a6')+'"></span><h2>'+esc((e.flag?e.flag+' ':'')+e.name)+'</h2><span class="dots" aria-label="'+(done?total:step)+'/'+total+'">'+d+'</span><button class="x fold" data-act="fold" type="button" aria-label="접기/펴기">⌄</button><button class="x" data-act="close" type="button" aria-label="닫기">×</button></div>';}
 const qbub=t=>'<div class="qbub"><div>'+tx(t)+'</div><button class="mini" type="button" data-act="speak" data-t="'+esc(plain(t))+'" aria-label="듣기">'+ic('spk')+'</button></div>';
 /* 대화 내용을 메신저처럼: 상대는 왼쪽, 나는 오른쪽(노란 말풍선). 친구·NPC 한 명마다 대화 하나 */
 const chats={};
@@ -1422,6 +1433,7 @@ function peerGotReply(e,r){
 sheet.addEventListener('click',ev=>{
   const btn=ev.target.closest('button');if(!btn)return;const a=btn.dataset.act;
   if(a==='close'){closeSheet();return;}
+  if(a==='fold'){sheet.classList.toggle('folded');return;}
   if(sheetKind==='maker'){makerClick(btn);return;}
   if(a==='speak'){speak(btn.dataset.t);return;}
   if(a==='obj'){answerObj(btn.dataset.v);return;}
@@ -1463,13 +1475,14 @@ function typingChanged(){
 function renderPrompt(){
   const it=promptQ[0];if(!it){promptEl.hidden=true;pb=null;syncTyping();return;}
   if(!pb||pb.it!==it){pb=newBuild(ansSet(it.a.kind,me.hobby));pb.it=it;speak(it.a.text);}
-  let h='<div class="sh-head"><span class="dot" style="background:'+validColor(it.from.color||'#8a93a6')+'"></span><h2>'+esc(it.from.name)+'</h2><button class="x" data-act="close" type="button" aria-label="닫기">×</button></div>';
+  let h='<div class="sh-head"><span class="dot" style="background:'+validColor(it.from.color||'#8a93a6')+'"></span><h2>'+esc(it.from.name)+'</h2><button class="x fold" data-act="fold" type="button" aria-label="접기/펴기">⌄</button><button class="x" data-act="close" type="button" aria-label="닫기">×</button></div>';
   h+=chatHtml(it.from,false)+buildUI(pb);
   promptEl.innerHTML=h;promptEl.hidden=false;chatDone(promptEl,it.from);syncTyping();
 }
 promptEl.addEventListener('click',ev=>{
   const btn=ev.target.closest('button');if(!btn)return;
   if(btn.dataset.act==='close'){promptQ.shift();pb=null;renderPrompt();return;}
+  if(btn.dataset.act==='fold'){promptEl.classList.toggle('folded');return;}
   if(btn.dataset.act==='speak'){speak(btn.dataset.t);return;}
   if(!pb||(pb.fb&&pb.fb.ok))return;
   const r=buildClick(pb,btn);typingPing();if(r==='send')answerSend();else if(r)renderPrompt();
@@ -1710,6 +1723,7 @@ canvas.addEventListener('pointerup',e=>{
 function resize(){const w=window.innerWidth,h=window.innerHeight;renderer.setSize(w,h,false);camera.aspect=w/h;camera.updateProjectionMatrix();}
 window.addEventListener('resize',resize);resize();
 const camOff=()=>camera.aspect<.8?new THREE.Vector3(0,27,21):new THREE.Vector3(0,20,17);
+let coverAt=0,coverPx=0,viewShift=0;
 const camLook=new THREE.Vector3(0,0,-8);camera.position.copy(camLook).add(camOff());camera.lookAt(camLook);
 let last=performance.now(), insidePlace=null, meetCheck=0, clockT=0, zoom=1;
 const tmp=new THREE.Vector3();
@@ -1735,8 +1749,14 @@ function frame(now){
     const nearCourt=d2(p,P.court.x,P.court.z)<14;myRing.visible=minuRing.visible=nearCourt;myRing.position.set(p.x,.08,p.z);
     const inRoom=insidePlace&&insidePlace.room?insidePlace.id:null;
     for(const r of ROOMS){const tg=r.id===inRoom?.14:1;r.o+=(tg-r.o)*Math.min(1,dt*6);for(const m of r.mats){m.opacity=r.o;m.depthWrite=r.o>.95;}}
-    zoom+=((inRoom?.58:player.act?.78:1)-zoom)*Math.min(1,dt*3);
-    camLook.lerp(tmp.set(p.x,0,p.z),Math.min(1,dt*4));camera.position.copy(camLook).add(camOff().multiplyScalar(zoom));camera.lookAt(camLook);
+    // 대화 중이면: 나와 상대 가운데를 보고, 화면이 대화창에 가린 만큼 장면을 위로 올려요
+    const partner=!sheet.hidden&&talkTarget&&talkTarget.g?talkTarget:(!promptEl.hidden&&promptQ[0]&&promptQ[0].from.g?promptQ[0].from:null);
+    if(now-coverAt>150){coverAt=now;let top=innerHeight;for(const el of [sheet,promptEl])if(!el.hidden){const r=el.getBoundingClientRect();if(r.height>0)top=Math.min(top,r.top);}coverPx=Math.min(innerHeight*.72,innerHeight-top);}
+    viewShift+=(coverPx*.5-viewShift)*Math.min(1,dt*5);
+    if(viewShift>1)camera.setViewOffset(innerWidth,innerHeight,0,viewShift,innerWidth,innerHeight);else if(camera.view&&camera.view.enabled)camera.clearViewOffset();
+    zoom+=((inRoom?.58:partner?.7:player.act?.78:1)-zoom)*Math.min(1,dt*3);
+    if(partner)tmp.set((p.x+partner.g.position.x)/2,0,(p.z+partner.g.position.z)/2);else tmp.set(p.x,0,p.z);
+    camLook.lerp(tmp,Math.min(1,dt*4));camera.position.copy(camLook).add(camOff().multiplyScalar(zoom));camera.lookAt(camLook);
     // meeting
     meetCheck+=dt;if(meetCheck>.5){meetCheck=0;const a=prog.appt;
       if(a&&!prog.met){const pl=P[a.place];const partner=entByKey(a.key);
