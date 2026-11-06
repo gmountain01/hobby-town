@@ -32,11 +32,16 @@ html,body{height:100%;overflow:hidden;background:#bfe3ee;color:var(--ink);font-f
 .name.npc{background:#efeaff;border:1.5px solid #8f7ae6;color:#2c2160;display:inline-flex;align-items:center;gap:4px;padding:1px 8px 1px 3px}
 .name.npc .ai{display:inline-flex;align-items:center;gap:2px;background:#6c55d9;color:#fff;border-radius:999px;padding:0 6px 0 2px;font-size:10px;font-weight:800;letter-spacing:.04em;line-height:16px}
 .name.npc .ai svg{width:14px;height:14px}
-.tag.typing{display:flex;gap:4px;background:#fff;border:1.5px solid #c9d3e3;border-radius:14px;padding:6px 9px;box-shadow:0 2px 6px rgba(23,35,59,.15)}
+.tag.typing{display:flex;align-items:center;gap:4px;background:#fff;border:1.5px solid #c9d3e3;border-radius:14px;padding:6px 9px;box-shadow:0 2px 6px rgba(23,35,59,.15)}
 .tag.typing i,#typBar i{display:block;width:6px;height:6px;border-radius:50%;background:#8a93a6;animation:tdot 1s infinite}
 .tag.typing i:nth-child(2),#typBar i:nth-child(2){animation-delay:.15s}.tag.typing i:nth-child(3),#typBar i:nth-child(3){animation-delay:.3s}
 .tag.typing.tome{border-color:var(--accent,#1c5bd0)}.tag.typing.tome i{background:var(--accent,#1c5bd0)}
-@keyframes tdot{0%,60%,100%{transform:translateY(0);opacity:.45}30%{transform:translateY(-4px);opacity:1}}
+@keyframes tdot{0%,60%,100%{transform:translateY(0) scale(.85);opacity:.4}30%{transform:translateY(-6px) scale(1.15);opacity:1}}
+@keyframes pen{0%,100%{transform:translate(0,0) rotate(-8deg)}25%{transform:translate(3px,-2px) rotate(6deg)}50%{transform:translate(6px,0) rotate(-6deg)}75%{transform:translate(3px,1px) rotate(8deg)}}
+@keyframes tpulse{0%,100%{box-shadow:0 4px 12px rgba(0,0,0,.2),0 0 0 0 rgba(79,143,247,.55)}50%{box-shadow:0 4px 12px rgba(0,0,0,.2),0 0 0 7px rgba(79,143,247,0)}}
+.pen{display:inline-block;width:20px;height:20px;animation:pen .9s ease-in-out infinite;transform-origin:20% 80%}.pen svg{width:20px;height:20px}
+#typBar{animation:tpulse 1.4s ease-out infinite}
+.tag.typing{animation:tbob 1.2s ease-in-out infinite}@keyframes tbob{0%,100%{margin-top:0}50%{margin-top:-3px}}
 #typBar{position:fixed;left:50%;transform:translateX(-50%);top:calc(70px + env(safe-area-inset-top,0px));z-index:8;background:#17233b;color:#fff;border-radius:999px;padding:7px 14px;font-size:14px;display:flex;align-items:center;gap:8px;white-space:nowrap;max-width:calc(100vw - 32px);box-shadow:0 4px 12px rgba(0,0,0,.2)}
 #typBar[hidden]{display:none!important}#typBar i{background:#fff}#typBar .dots{display:flex;gap:3px}
 .hint .dots{display:inline-flex;gap:3px;margin-left:6px;vertical-align:middle}.hint .dots i{display:block;width:6px;height:6px;border-radius:50%;background:var(--accent,#1c5bd0);animation:tdot 1s infinite}.hint .dots i:nth-child(2){animation-delay:.15s}.hint .dots i:nth-child(3){animation-delay:.3s}
@@ -182,6 +187,22 @@ select{font:inherit;font-size:15px;padding:8px 10px;border:1.5px solid var(--lin
 .dots{display:flex;gap:5px;align-items:center}
 .dots i{width:10px;height:10px;border-radius:50%;background:var(--line)}
 .dots i.on{background:var(--accent)}
+.chat{display:flex;flex-direction:column;gap:8px;max-height:34vh;overflow-y:auto;padding:4px 2px;overscroll-behavior:contain}
+.msg{display:flex;align-items:flex-end;gap:6px;max-width:90%}
+.msg.them{align-self:flex-start}.msg.me{align-self:flex-end;flex-direction:row-reverse}
+.msg .av{flex:0 0 32px;height:32px;border-radius:50%;display:grid;place-items:center;font-size:16px;border:2px solid #fff;box-shadow:0 1px 4px rgba(23,35,59,.2)}
+.msg .b{padding:9px 13px;border-radius:18px;font-size:19px;line-height:1.4;word-break:keep-all;min-width:0}
+.msg.them .b{background:#fff;border:1.5px solid var(--line);border-bottom-left-radius:5px}
+.msg.them.npcm .b{background:#f3efff;border-color:#cfc3f7}
+.msg.me .b{background:#ffe14d;color:#17233b;border-bottom-right-radius:5px}
+.msg .mini{flex:0 0 auto;align-self:center}
+.msg.typing .b{display:flex;gap:5px;align-items:center;padding:13px 14px}
+.msg.typing .b i{display:block;width:8px;height:8px;border-radius:50%;background:#8a93a6;animation:tdot 1s infinite}
+.msg.typing .b i:nth-child(2){animation-delay:.15s}.msg.typing .b i:nth-child(3){animation-delay:.3s}
+.chat .sys{align-self:center;background:#e4f5ea;color:var(--ok);border-radius:999px;padding:6px 14px;font-weight:700;font-size:16px;text-align:center}
+.chat .new.them,.chat .new.typing{animation:msgL .32s cubic-bezier(.2,.9,.3,1.2) both}.chat .new.me{animation:msgR .32s cubic-bezier(.2,.9,.3,1.2) both}.chat .sys.new{animation:msgL .35s both}
+@keyframes msgL{from{opacity:0;transform:translate(-14px,8px) scale(.9)}to{opacity:1;transform:none}}
+@keyframes msgR{from{opacity:0;transform:translate(14px,8px) scale(.9)}to{opacity:1;transform:none}}
 .qbub{display:flex;gap:10px;align-items:center;background:var(--tint);border-radius:16px;padding:14px 14px 14px 16px}
 .qbub div{flex:1;min-width:0;font-size:21px;line-height:1.45;word-break:keep-all}
 .pv.ok{border-color:var(--ok);background:#e4f5ea}
@@ -377,7 +398,7 @@ const tw=h=>ampm(h)+' '+HW[h%12]+' 시';
 const I18N={ko:{
 sub:'동네를 걸어요. 한국어로 말해요.',back:':back: 뒤로',name:'이름',namePh:'이름',color:':palette: 색깔',card:':cards: 내 취미를 골라요',change:':refresh: 바꿔요',
 sound:'소리',soundOk:':spk: "안녕하세요" 들려요?',soundNo:':no: 소리가 안 나와요 → 선생님!',enter:'들어가요 :play:',
-howto:':tap: 땅 = 걸어요 · :tap: 사람 = 말해요',alone:'혼자 연습해요',waiting:':hour: 친구를 기다려요',friends:':people: 마을 {t} · 친구 {n}명',
+howto:':tap: 땅 = 걸어요 · :tap: 사람 = 말해요',alone:'혼자 연습해요',waiting:':hour: 친구를 기다려요',friends:':people: 마을 {t} · {n}명',
 missions:':target: 미션',m1:'장소 5곳에 가요',m2:'친구 3명에게 취미를 물어요',m3:'농구장: 누구 가방이에요?',m4:'친구하고 약속해요',m5:'약속 장소에서 만나요',m6:'내 취미 장소에서 내 취미를 해요',actQ:'무엇을 해요?',timeQ:'언제 해요?',
 notes:':star: 내 문장',notesEmpty:'아직 없어요.',cards:'카드',mine:'내 말',buildHint:':tap: 카드를 눌러요',send:'말해요',clear:'지워요',
 mineHint:'내 나라 말로 써요',toKo:'한국어로',nowBuild:'이 문장을 만들어요!',thinking:':think: 생각해요…',great:':yes: 좋아요!',better:'이렇게 말해요 :next:',
@@ -522,10 +543,35 @@ function add(geo,c,x,y,z,parent,e){const m=new THREE.Mesh(geo,mat(c,e));m.positi
 const box=(w,h,d)=>new THREE.BoxGeometry(w,h,d);
 function flat(w,d,c,x,z,y){const m=add(new THREE.PlaneGeometry(w,d),c,x,y||.02,z);m.rotation.x=-Math.PI/2;return m;}
 function disc(r,c,x,z,y){const m=add(new THREE.CircleGeometry(r,28),c,x,y||.03,z);m.rotation.x=-Math.PI/2;return m;}
-function tree(x,z,s){s=s||1;add(new THREE.CylinderGeometry(.18*s,.24*s,1.2*s,6),'#8a5a3a',x,.6*s,z);add(new THREE.ConeGeometry(1.1*s,2.4*s,7),'#4f9a4a',x,2.3*s,z);}
+let treeN=0;
+// 나무 세 가지: 소나무 · 둥근 나무 · 벚나무
+function tree(x,z,s){s=s||1;const k=treeN++%3;add(new THREE.CylinderGeometry(.18*s,.24*s,1.2*s,6),'#8a5a3a',x,.6*s,z);
+  if(k===0){add(new THREE.ConeGeometry(1.1*s,1.6*s,7),'#4f9a4a',x,1.8*s,z);add(new THREE.ConeGeometry(.8*s,1.3*s,7),'#5aa852',x,2.6*s,z);}
+  else{const c=k===1?'#62b25a':'#ffb7cf',c2=k===1?'#73c06a':'#ffcadb';add(new THREE.SphereGeometry(1*s,10,8),c,x,2*s,z);add(new THREE.SphereGeometry(.7*s,9,7),c2,x+.45*s,2.5*s,z+.2*s);add(new THREE.SphereGeometry(.65*s,9,7),c2,x-.5*s,2.35*s,z-.15*s);}}
 
-flat(100,100,'#a8d580',0,0,0);
-flat(66,4,'#ebdfc3',0,5,.03);flat(4,48,'#ebdfc3',0,6,.03);disc(5.5,'#efe6cc',0,-8,.04);
+/* ---------- 한국 동네 꾸미기: 잔디·보도블록 무늬는 캔버스로 그려서 가볍게 ---------- */
+const MAXANI=Math.min(4,renderer.capabilities.getMaxAnisotropy());
+function canvasTex(w,h,draw,rx,ry){const c=document.createElement('canvas');c.width=w;c.height=h;draw(c.getContext('2d'),w,h);const t=new THREE.CanvasTexture(c);t.wrapS=t.wrapT=THREE.RepeatWrapping;t.repeat.set(rx||1,ry||1);t.anisotropy=MAXANI;return t;}
+function texFlat(w,d,tex,x,z,y){const m=new THREE.Mesh(new THREE.PlaneGeometry(w,d),new THREE.MeshLambertMaterial({map:tex}));m.rotation.x=-Math.PI/2;m.position.set(x,y||.02,z);scene.add(m);return m;}
+let seedR=7;const rnd=()=>{seedR=(seedR*16807)%2147483647;return seedR/2147483647;};
+const grassTex=canvasTex(128,128,(g,w,h)=>{g.fillStyle='#a8d580';g.fillRect(0,0,w,h);
+  for(let i=0;i<70;i++){g.fillStyle=rnd()<.5?'rgba(150,200,110,.55)':'rgba(190,226,150,.6)';const x=rnd()*w,y=rnd()*h,r=4+rnd()*10;g.beginPath();g.ellipse(x,y,r,r*.6,rnd()*3,0,7);g.fill();}
+  g.strokeStyle='rgba(120,175,90,.7)';g.lineWidth=1.4;for(let i=0;i<120;i++){const x=rnd()*w,y=rnd()*h;g.beginPath();g.moveTo(x,y);g.lineTo(x+(rnd()-.5)*3,y-3-rnd()*3);g.stroke();}
+  for(let i=0;i<5;i++){g.fillStyle=['#ffffff','#ffe066','#ffb3c7'][i%3];g.beginPath();g.arc(rnd()*w,rnd()*h,1.8,0,7);g.fill();}},25,25);
+texFlat(100,100,grassTex,0,0,0);
+// 보도블록: 엇갈려 쌓은 벽돌 무늬 (한국 인도 느낌)
+const PAVE=['#e7d9bf','#dccbab','#eee3cd','#e4c6b4'];
+const paveTex=(rx,ry)=>canvasTex(128,128,(g,w,h)=>{g.fillStyle='#b9a582';g.fillRect(0,0,w,h);const bw=32,bh=16;
+  for(let r=0;r<h/bh;r++)for(let c=-1;c<w/bw+1;c++){const x=c*bw+(r%2?bw/2:0),y=r*bh;g.fillStyle=PAVE[(r*3+c*5+8)%4];g.fillRect(x+1.5,y+1.5,bw-3,bh-3);}},rx,ry);
+texFlat(66,4,paveTex(33,2),0,5,.03);texFlat(4,48,paveTex(2,24),0,6,.031);
+{const m=new THREE.Mesh(new THREE.CircleGeometry(5.5,40),new THREE.MeshLambertMaterial({map:paveTex(5,5)}));m.rotation.x=-Math.PI/2;m.position.set(0,.04,-8);scene.add(m);
+ const ring=new THREE.Mesh(new THREE.RingGeometry(5.5,5.85,48),mat('#d6dbe2'));ring.rotation.x=-Math.PI/2;ring.position.set(0,.05,-8);scene.add(ring);}
+// 연석 (보도 가장자리 턱)
+[[-33,-2],[2,33]].forEach(([a,b])=>{for(const z of [2.95,7.05])add(box(b-a,.14,.22),'#d6dbe2',(a+b)/2,.07,z);});
+[[-2.5,2.9],[7.1,30]].forEach(([a,b])=>{for(const x of [-2.05,2.05])add(box(.22,.14,b-a),'#d6dbe2',x,.07,(a+b)/2);});
+// 횡단보도
+const zebra=canvasTex(64,64,(g,w,h)=>{g.clearRect(0,0,w,h);g.fillStyle='#ffffff';for(let i=0;i<4;i++)g.fillRect(i*16+3,0,10,h);},1,1);
+[-10,10].forEach(x=>{const m=new THREE.Mesh(new THREE.PlaneGeometry(3.2,3.4),new THREE.MeshLambertMaterial({map:zebra,transparent:true}));m.rotation.x=-Math.PI/2;m.position.set(x,.045,5);scene.add(m);});
 const cyl=(rt,rb,h,s)=>new THREE.CylinderGeometry(rt,rb,h,s||12);
 // 안이 보이는 건물: 가까이 가면 지붕과 앞벽(카메라 쪽 벽)이 투명해져요
 const ROOMS=[];
@@ -537,7 +583,7 @@ function building(id,x,z,w,d,h,wall,roof,floor){
   for(const sx of [-1,1]){const m=new THREE.Mesh(box(seg,h,.3),fm);m.position.set(x+sx*(1.1+seg/2),h/2,z+d/2);scene.add(m);}
   const li=new THREE.Mesh(box(2.2,h-2.5,.3),fm);li.position.set(x,2.5+(h-2.5)/2,z+d/2);scene.add(li);
   const rf=new THREE.Mesh(box(w+.7,.45,d+.7),rm);rf.position.set(x,h+.22,z);scene.add(rf);
-  ROOMS.push({id,mats:[fm,rm],o:1});
+  ROOMS.push({id,mats:[fm,rm],o:1,x,z,w,d,h});
 }
 const SCREENS=[];
 function screen(w,h,x,y,z){const m=new THREE.MeshLambertMaterial({color:'#bfe6ff',emissive:'#3a6fb0'});const sc=new THREE.Mesh(box(w,h,.08),m);sc.position.set(x,y,z);scene.add(sc);SCREENS.push(m);return sc;}
@@ -551,7 +597,7 @@ add(box(6,2,.1),'#2f5d46',0,2.5,-23.3);add(box(6.3,.15,.2),'#c99a6b',0,1.45,-23.
 for(const x of [-3,0,3])for(const z of [-19.6,-17.4]){desk(x,z);chair(x,z+.75);}
 add(cyl(.07,.07,6,6),'#999999',7,3,-16);add(box(1.4,.9,.05),'#ffffff',7.7,5.5,-16);
 // PC방: 컴퓨터 줄, 의자, 간판
-building('pcbang',20,17,9,7,4,'#39405c','#232842','#4a4f6a');sign(4.4,'#2fd6cf','#167c78',20,4.9,20.75);
+building('pcbang',20,17,9,7,4,'#39405c','#232842','#4a4f6a');
 for(const x of [17,19.5,22]){desk(x,15.2,'#e6e9f2');screen(1.1,.7,x,1.3,14.95);add(box(.6,.05,.25),'#333333',x,.86,15.5);chair(x,16.1,'#ff5a5f');}
 for(const x of [17,19.5,22]){desk(x,18.2,'#e6e9f2');screen(1.1,.7,x,1.3,17.95);}
 // 집: 부엌, 소파와 티브이, 러그
@@ -560,18 +606,18 @@ add(box(3.2,1,1),'#f5f5f5',-12,.5,27.2);add(box(1,.05,.8),'#333333',-12.6,1.03,2
 screen(2.6,1.5,-5.5,1.7,26.75);add(box(2.4,.6,.6),'#7a4f33',-5.5,.3,27.05);flat(3.2,2.2,'#ff8fb1',-5.5,29.2,.08);
 add(box(3,.5,1),'#4f8ff7',-5.5,.25,30.7);add(box(3,.9,.3),'#3f74cc',-5.5,.75,31.15);
 // 영화관: 큰 스크린, 빨간 의자, 팝콘
-building('cinema',10,30,10,7,5,'#684ca6','#3a2a66','#2a1f45');screen(8,3,10,2.8,26.75);sign(6,'#ffd34d','#7a5b10',10,5.9,33.7);
+building('cinema',10,30,10,7,5,'#684ca6','#3a2a66','#2a1f45');screen(8,3,10,2.8,26.75);
 for(const z of [28.8,30.3,31.8])for(const x of [6.5,8.25,10,11.75,13.5]){add(box(1.2,.5,.9),'#d64545',x,.25,z);add(box(1.2,.8,.2),'#b83a3a',x,.8,z+.42);}
 add(box(1.3,1,.8),'#ffd34d',14,.5,32.9);add(cyl(.3,.22,.5),'#ffffff',14,1.25,32.9);
 // 도서관: 책장, 책상, 램프
-building('library',-32,6,8,7,4.5,'#ead9bd','#7a4f33','#cfb68f');sign(3.2,'#3a6db8','#1c3a70',-32,5.3,9.7);
+building('library',-32,6,8,7,4.5,'#ead9bd','#7a4f33','#cfb68f');
 const BK=['#ff5a5f','#4f8ff7','#3cc47c','#ffd23f','#9b6bff'];
 [-34.6,-32.6,-30.6].forEach((x,i)=>{add(box(1.8,3.2,.6),'#8a5a3a',x,1.6,3.0);for(let r=0;r<3;r++)add(box(1.5,.6,.45),BK[(i+r)%5],x,.65+r*1,3.1);});
 add(box(3,.12,1.4),'#c99a6b',-32,.8,6.2);add(box(.12,.75,1.2),'#8a6a4a',-33.3,.38,6.2);add(box(.12,.75,1.2),'#8a6a4a',-30.7,.38,6.2);
 add(cyl(.05,.05,.5,6),'#555555',-30.9,1.1,6);add(new THREE.SphereGeometry(.2,10,8),'#fff1b8',-30.9,1.4,6,null,'#a08a30');add(box(.6,.12,.4),'#ff5a5f',-32.4,.92,6.1);
 chair(-32.8,7.3,'#3cc47c');chair(-31.2,7.3,'#3cc47c');
 // 노래방: 화면, 마이크, 소파, 반짝이 공
-building('karaoke',-29,27,7,6,4,'#2d2350','#1b1530','#3b2f6b');sign(4.4,'#ff5aa5','#a3245f',-29,4.8,30.2);
+building('karaoke',-29,27,7,6,4,'#2d2350','#1b1530','#3b2f6b');
 screen(4,2,-29,2.2,24.2);add(box(.9,.5,3),'#ff5aa5',-26.3,.25,27.3);add(box(.3,.9,3),'#d84a8c',-25.9,.7,27.3);add(box(1.1,.5,1.1),'#555555',-27.4,.25,27.3);
 add(cyl(.04,.04,1.3,6),'#bbbbbb',-29,.65,26.6);add(new THREE.SphereGeometry(.11,8,6),'#333333',-29,1.35,26.6);
 const disco=add(new THREE.SphereGeometry(.35,10,8),'#e8e8ff',-29,3.4,27.3,null,'#6a6aff');
@@ -605,6 +651,75 @@ flat(40,9,'#5ab5e3',24,-30,.05);add(box(3.2,.5,11),'#b88a5d',20,.4,-30);flat(30,
 [8.2,8.9].forEach(x=>{const u=add(new THREE.TorusGeometry(.35,.05,6,12,Math.PI),'#888888',x,.35,-23.4);u.rotation.y=Math.PI/2;});
 // 가장자리 나무
 [[-34,20],[33,24],[28,36],[-36,-8],[36,-12],[0,36],[-20,36],[20,36],[-36,30]].forEach(p=>tree(p[0],p[1],1.3));
+
+/* ---------- 건물 꾸미기: 한글 간판 · 차양 · 창문 · 화분 · 지붕 ---------- */
+const SIGN_DRAW=[];
+function roomOf(id){return ROOMS.find(r=>r.id===id);}
+function fadeMat(r,o){const m=new THREE.MeshLambertMaterial(Object.assign({transparent:true},o));r.mats.push(m);return m;}
+function signboard(id,text,bg,fg,glow){const r=roomOf(id);const sw=Math.min(r.w-1.2,4.6),y=2.5+(r.h-2.5)/2,z=r.z+r.d/2+.2;
+  const c=document.createElement('canvas');c.width=512;c.height=112;const t=new THREE.CanvasTexture(c);t.anisotropy=MAXANI;
+  const draw=()=>{const g=c.getContext('2d');g.clearRect(0,0,512,112);g.fillStyle=bg;g.beginPath();g.roundRect?g.roundRect(4,4,504,104,18):g.rect(4,4,504,104);g.fill();
+    g.lineWidth=6;g.strokeStyle='rgba(255,255,255,.55)';g.stroke();g.fillStyle=fg;g.font='68px "Black Han Sans","Apple SD Gothic Neo","Malgun Gothic",sans-serif';g.textAlign='center';g.textBaseline='middle';
+    if(glow){g.shadowColor=fg;g.shadowBlur=14;}g.fillText(text,256,60);t.needsUpdate=true;};
+  draw();SIGN_DRAW.push(draw);
+  const m=new THREE.Mesh(new THREE.PlaneGeometry(sw,sw*112/512),fadeMat(r,{map:t,emissive:glow?'#333333':'#000000'}));m.position.set(r.x,y,z);scene.add(m);return {r,y,z,sw};}
+function awning(id,c1,c2){const r=roomOf(id);const tex=canvasTex(64,16,(g,w,h)=>{for(let i=0;i<8;i++){g.fillStyle=i%2?c2:c1;g.fillRect(i*8,0,8,h);}},1,1);
+  const m=new THREE.Mesh(new THREE.PlaneGeometry(2.9,1),fadeMat(r,{map:tex,side:THREE.DoubleSide}));m.position.set(r.x,2.45,r.z+r.d/2+.55);m.rotation.x=-Math.PI/2+.55;scene.add(m);
+  // 차양 끝 물결 장식
+  for(let i=0;i<6;i++){const sc=new THREE.Mesh(new THREE.CircleGeometry(.24,10,0,Math.PI),fadeMat(r,{color:i%2?c2:c1,side:THREE.DoubleSide}));sc.rotation.z=Math.PI;sc.position.set(r.x-1.21+i*.484,2.03,r.z+r.d/2+.98);scene.add(sc);}}
+function windows(id,frame){const r=roomOf(id);const gm=fadeMat(r,{color:'#cfeeff',emissive:'#2a4a66'}),fm=fadeMat(r,{color:frame||'#ffffff'});
+  const put=(x,y,z,ry)=>{const f=new THREE.Mesh(box(1.25,1.05,.08),fm);f.position.set(x,y,z);f.rotation.y=ry;scene.add(f);const gl=new THREE.Mesh(box(1.05,.85,.1),gm);gl.position.set(x,y,z);gl.rotation.y=ry;scene.add(gl);
+    const bar=new THREE.Mesh(box(.06,.85,.12),fm);bar.position.set(x,y,z);bar.rotation.y=ry;scene.add(bar);};
+  const y=Math.min(2.2,r.h-1.4),seg=(r.w-2.2)/2;
+  for(const sx of [-1,1]){put(r.x+sx*(1.1+seg/2),y,r.z+r.d/2+.17,0);for(const k of [-.25,.25])put(r.x+sx*(r.w/2+.17),y,r.z+k*r.d,Math.PI/2);}}
+function planters(id,c){const r=roomOf(id);for(const sx of [-1,1]){const x=r.x+sx*1.75,z=r.z+r.d/2+.75;add(box(.7,.55,.7),'#b5835a',x,.28,z);add(new THREE.SphereGeometry(.38,9,7),'#5aa852',x,.75,z);
+  for(let i=0;i<3;i++)add(new THREE.SphereGeometry(.1,6,5),c,x+Math.cos(i*2.1)*.28,.95,z+Math.sin(i*2.1)*.28);}}
+// 한옥 기와지붕: 처마 끝이 살짝 올라간 곡선 지붕 + 용마루
+function hanokRoof(id,col,ridge){const r=roomOf(id);const rm=r.mats[1];rm.color.set(col);
+  const hw=r.d/2+.9,H=r.d*.42,sh=new THREE.Shape();sh.moveTo(-hw,.55);sh.quadraticCurveTo(-hw*.5,H*.32,0,H);sh.quadraticCurveTo(hw*.5,H*.32,hw,.55);sh.lineTo(hw*.82,0);sh.lineTo(-hw*.82,0);sh.closePath();
+  const L=r.w+1.6,geo=new THREE.ExtrudeGeometry(sh,{depth:L,bevelEnabled:false});geo.translate(0,0,-L/2);geo.rotateY(Math.PI/2);
+  const m=new THREE.Mesh(geo,rm);m.position.set(r.x,r.h+.4,r.z);scene.add(m);
+  const rmat=fadeMat(r,{color:ridge});const rg=new THREE.Mesh(box(L+.3,.32,.45),rmat);rg.position.set(r.x,r.h+.4+H+.1,r.z);scene.add(rg);
+  for(const sx of [-1,1]){const e=new THREE.Mesh(box(.3,.55,.5),fadeMat(r,{color:'#f4efe1'}));e.position.set(r.x+sx*(L/2+.2),r.h+.4+H+.2,r.z);scene.add(e);}
+  // 기와 줄무늬
+  const lm=fadeMat(r,{color:ridge});for(let i=1;i<=3;i++){const t=i/4,zz=hw*(1-t)*.98,yy=.55+(H-.55)*Math.pow(t,1.35);for(const sz of [-1,1]){const ln=new THREE.Mesh(box(L,.08,.12),lm);ln.position.set(r.x,r.h+.4+yy+.04,r.z+sz*zz);scene.add(ln);}}}
+// 학교 시계탑
+function clockTower(id){const r=roomOf(id);const zf=r.z+r.d/2-.6,y0=r.h+.45;
+  const tw=new THREE.Mesh(box(2.4,1.9,1.2),fadeMat(r,{color:'#f4efe1'}));tw.position.set(r.x,y0+.95,zf);scene.add(tw);
+  const tp=new THREE.Mesh(box(2.8,.25,1.5),r.mats[1]);tp.position.set(r.x,y0+2,zf);scene.add(tp);
+  const face=new THREE.Mesh(new THREE.CircleGeometry(.65,24),fadeMat(r,{color:'#ffffff'}));face.position.set(r.x,y0+1,zf+.61);scene.add(face);
+  const hm=fadeMat(r,{color:'#1f2a44'});const h1=new THREE.Mesh(box(.07,.42,.02),hm);h1.position.set(r.x,y0+1.18,zf+.63);scene.add(h1);const h2=new THREE.Mesh(box(.32,.07,.02),hm);h2.position.set(r.x+.14,y0+1,zf+.63);scene.add(h2);}
+// 영화관 전구 장식
+function bulbs(id,info){const r=roomOf(id);const bm=fadeMat(r,{color:'#fff4b0',emissive:'#c9a227'});for(let i=0;i<9;i++){const b=new THREE.Mesh(new THREE.SphereGeometry(.09,6,5),bm);b.position.set(r.x-info.sw/2+info.sw*i/8,info.y+info.sw*112/512/2+.12,info.z+.02);scene.add(b);}}
+// 옥상 실외기·물탱크 (상가 건물 느낌)
+function rooftop(id){const r=roomOf(id);const y=r.h+.45;const a=new THREE.Mesh(box(1.1,.7,.7),r.mats[1].clone());a.material=fadeMat(r,{color:'#dfe4ea'});a.position.set(r.x-r.w/4,y+.35,r.z-r.d/4);scene.add(a);
+  const tk=new THREE.Mesh(cyl(.6,.6,1.1,12),fadeMat(r,{color:'#4f8ff7'}));tk.position.set(r.x+r.w/4,y+.55,r.z-r.d/5);scene.add(tk);}
+
+hanokRoof('home','#4d5566','#2e3442');hanokRoof('library','#5b4a3e','#3a2e26');
+clockTower('school');rooftop('pcbang');rooftop('karaoke');
+signboard('school','학교','#2f5d46','#ffffff');
+const pcS=signboard('pcbang','PC방','#1b1f33','#3ff0e8',true);
+const cinS=signboard('cinema','영화관','#3a2a66','#ffd34d',true);bulbs('cinema',cinS);
+signboard('library','도서관','#7a4f33','#fff1d0');
+signboard('karaoke','노래방','#2a1840','#ff6ec0',true);
+awning('pcbang','#2fd6cf','#ffffff');awning('cinema','#d64545','#ffffff');awning('karaoke','#ff5aa5','#ffffff');awning('library','#3cc47c','#ffffff');
+['school','pcbang','home','cinema','library','karaoke'].forEach(id=>windows(id,id==='home'||id==='library'?'#8a5a3a':'#ffffff'));
+planters('school','#ff5a5f');planters('home','#ffd23f');planters('cinema','#ff8fb1');planters('library','#9b6bff');
+// 집 문패 + 담장
+{const r=roomOf('home');const nm=canvasTex(128,48,(g,w,h)=>{g.fillStyle='#7a4f33';g.fillRect(0,0,w,h);g.fillStyle='#fff1d0';g.font='32px "Black Han Sans",sans-serif';g.textAlign='center';g.textBaseline='middle';g.fillText('우리 집',64,26);},1,1);
+ const np=new THREE.Mesh(new THREE.PlaneGeometry(1.2,.45),fadeMat(r,{map:nm}));np.position.set(r.x+1.75,2.0,r.z+r.d/2+.18);scene.add(np);
+ SIGN_DRAW.push(()=>{const g=nm.image.getContext('2d');g.fillStyle='#7a4f33';g.fillRect(0,0,128,48);g.fillStyle='#fff1d0';g.font='32px "Black Han Sans",sans-serif';g.textAlign='center';g.textBaseline='middle';g.fillText('우리 집',64,26);nm.needsUpdate=true;});}
+// 웹 폰트가 늦게 오면 간판을 다시 그려요
+if(document.fonts&&document.fonts.load)document.fonts.load('68px "Black Han Sans"','학교영화관도서관노래방우리집').then(()=>SIGN_DRAW.forEach(f=>f())).catch(()=>{});
+/* ---------- 거리: 가로등 · 벤치 · 화단 ---------- */
+function lamp(x,z,ry){const g=new THREE.Group();g.position.set(x,0,z);g.rotation.y=ry||0;scene.add(g);
+  add(cyl(.09,.12,3.6,8),'#3a4766',0,1.8,0,g);add(box(.9,.08,.08),'#3a4766',.4,3.55,0,g);add(box(.42,.22,.42),'#fff3c4',.8,3.42,0,g,'#c9a24a');}
+[[-30,2.3],[-21,7.7],[21,7.7],[30,2.3],[-2.7,24],[2.7,24],[-2.7,-15],[2.7,-15]].forEach(([x,z])=>lamp(x,z,x<0?0:Math.PI));
+function bench(x,z,ry){const g=new THREE.Group();g.position.set(x,0,z);g.rotation.y=ry||0;scene.add(g);
+  add(box(1.9,.1,.55),'#c98a55',0,.48,0,g);add(box(1.9,.45,.08),'#c98a55',0,.85,-.26,g);for(const sx of [-.8,.8])add(box(.1,.48,.5),'#3a4766',sx,.24,0,g);}
+bench(-26,8.4,Math.PI);bench(26,8.4,Math.PI);bench(4.2,26,-Math.PI/2);
+function flowerBed(x,z,w,c){add(box(w,.3,.9),'#b5835a',x,.15,z);add(box(w-.2,.12,.7),'#6b8f4a',x,.32,z);for(let i=0;i<Math.round(w*2);i++)add(new THREE.SphereGeometry(.13,6,5),c[i%c.length],x-w/2+.35+i*(w-.7)/Math.max(1,Math.round(w*2)-1),.48,z+(i%2?.15:-.15));}
+flowerBed(-7,1.9,4,['#ff5a5f','#ffd23f','#ffffff']);flowerBed(7,1.9,4,['#ff8fb1','#9b6bff','#ffffff']);
 
 /* ---------- avatars ---------- */
 const AV={body:new THREE.CylinderGeometry(.34,.46,.7,14),shoulder:new THREE.SphereGeometry(.34,14,10),head:new THREE.SphereGeometry(.5,18,14),
@@ -660,26 +775,39 @@ npcs.forEach(n=>{n.home={x:n.x,z:n.z};});
 /* ---------- 나에게 오는 NPC: 가만히 있으면(또는 손 흔들기 스티커) NPC가 다가와 먼저 말을 걸어요 ---------- */
 let visitor=null,lastBusy=performance.now(),visitCool=0;const returning=new Set();
 function busyNow(){lastBusy=performance.now();}
-function canVisit(){return !window.__noVisit&&player.g&&!player.target&&!player.act&&!game.on&&sheet.hidden&&!promptQ.length&&$('#intro').hidden;}
+// 친구와 대화 중(서로 쓰는 중·대답 기다리는 중·최근 40초 안에 대화)이면 AI NPC가 오지 않아요
+let lastPeerChat=0;
+function inPeerChat(){if(performance.now()-lastPeerChat<40000)return true;
+  for(const e of peers.values())if(e.typK==='me')return true;
+  for(const k in pconv){const c=pconv[k];if(c&&c.wait&&!c.done)return true;}
+  try{return typSent!=='';}catch(e){return false;}}
+function canVisit(){return !window.__noVisit&&player.g&&!player.target&&!player.act&&!game.on&&sheet.hidden&&!promptQ.length&&$('#intro').hidden&&!inPeerChat();}
 function callVisitor(prefer,skip){
   if(visitor||!player.g)return;const pp=player.g.position;
-  const cands=npcs.filter(n=>n!==skip&&!returning.has(n)&&n.name!=='민우'&&!(convs[n.key]&&convs[n.key].done)&&d2(pp,n.g.position.x,n.g.position.z)<(prefer?14:28));
+  const cands=npcs.filter(n=>n!==skip&&!returning.has(n)&&!n.remoteTo&&n.name!=='민우'&&!(convs[n.key]&&convs[n.key].done)&&d2(pp,n.g.position.x,n.g.position.z)<(prefer?14:28));
   if(!cands.length)return;
   cands.sort((a,b)=>d2(pp,a.g.position.x,a.g.position.z)-d2(pp,b.g.position.x,b.g.position.z));
   const n=prefer?cands[0]:cands[Math.floor(Math.random()*Math.min(4,cands.length))];
-  visitor={n,phase:'go',t:performance.now()};logEv('visitor',{npc:n.name,why:prefer?'wave':'idle'});n.askTag=tag('actic',ic('ask'),()=>n.g.position,3.1);bubble(n,'안녕하세요!');
+  visitor={n,phase:'go',t:performance.now()};pub({vis:{n:n.name,ts:Date.now()}});logEv('visitor',{npc:n.name,why:prefer?'wave':'idle'});n.askTag=tag('actic',ic('ask'),()=>n.g.position,3.1);bubble(n,'안녕하세요!');
   feed(ic('ask')+' '+who(n.flag,n.name,n.color)+': 안녕하세요!');
 }
-function endVisit(){if(!visitor)return;const n=visitor.n;if(n.askTag){untag(n.askTag);n.askTag=null;}returning.add(n);visitor=null;visitCool=performance.now()+20000;lastBusy=performance.now();}
+function endVisit(){if(!visitor)return;const n=visitor.n;pub({vis:null});if(n.askTag){untag(n.askTag);n.askTag=null;}returning.add(n);visitor=null;visitCool=performance.now()+20000;lastBusy=performance.now();}
+// 다른 친구에게 간 NPC도 내 화면에서 그 친구 쪽으로 걸어가요 (모두 같은 장면을 봐요)
+function stepRemoteVisits(now,dt){
+  for(const n of npcs){const e=n.remoteTo;if(!e)continue;if(!peers.has(e.peer)||talkTarget===n||(visitor&&visitor.n===n)){n.remoteTo=null;returning.add(n);continue;}
+    const pp=e.g.position,ang=e.g.rotation.y,tx=pp.x+Math.sin(ang)*1.7,tz=pp.z+Math.cos(ang)*1.7,g=n.g.position,dx=tx-g.x,dz=tz-g.z,d=Math.hypot(dx,dz);
+    if(d<.25||d2(pp,g.x,g.z)<1.9){n.g.lookAt(pp.x,0,pp.z);animWalk(n.g,false,now);continue;}
+    const st=Math.min(d,3.4*dt);g.x+=dx/d*st;g.z+=dz/d*st;n.g.rotation.y=Math.atan2(dx,dz);animWalk(n.g,true,now);}}
 function stepVisitor(now,dt){
-  for(const n of returning){const g=n.g.position,dx=n.home.x-g.x,dz=n.home.z-g.z,d=Math.hypot(dx,dz);
+  stepRemoteVisits(now,dt);
+  for(const n of returning){if(n.remoteTo){returning.delete(n);continue;}const g=n.g.position,dx=n.home.x-g.x,dz=n.home.z-g.z,d=Math.hypot(dx,dz);
     if(d<.2||(visitor&&visitor.n===n)){if(d<.2){g.x=n.home.x;g.z=n.home.z;animWalk(n.g,false,now);}returning.delete(n);continue;}
     const st=Math.min(d,2.6*dt);g.x+=dx/d*st;g.z+=dz/d*st;n.g.rotation.y=Math.atan2(dx,dz);animWalk(n.g,true,now);}
   if(!visitor){if(canVisit()&&now-lastBusy>12000&&now>visitCool)callVisitor(false);return;}
   const v=visitor,n=v.n,g=n.g.position,pp=player.g.position;
   let tx,tz,sp=3.4;
   if(v.phase==='go'){
-    if(player.target||player.act||game.on||!sheet.hidden){endVisit();return;}
+    if(player.target||player.act||game.on||!sheet.hidden||promptQ.length||inPeerChat()){endVisit();return;}
     const ang=player.g.rotation.y;tx=pp.x+Math.sin(ang)*1.7;tz=pp.z+Math.cos(ang)*1.7;
     if(Math.hypot(tx-g.x,tz-g.z)<.25||d2(pp,g.x,g.z)<1.9){v.phase='talk';v.t=now;if(n.askTag){untag(n.askTag);n.askTag=null;}
       n.g.lookAt(pp.x,0,pp.z);player.g.rotation.y=Math.atan2(g.x-pp.x,g.z-pp.z);if(sheet.hidden&&!promptQ.length)openTalk(n);return;}
@@ -846,7 +974,13 @@ function supaChannel(client,topic,myId,lobby){
   // 1초에 최대 2번만 보내요 (무료 한도 아끼기)
   const sendSoon=()=>{const wait=500-(Date.now()-lastSend);if(wait<=0)send();else if(!pend)pend=setTimeout(send,wait);};
   ch.on('broadcast',{event:'st'},({payload})=>{if(!payload||typeof payload.id!=='string'||payload.id===myId)return;others.set(payload.id,payload.s||{});members.add(payload.id);fire();});
-  ch.on('presence',{event:'sync'},()=>{const ids=new Set(Object.keys(ch.presenceState()));for(const id of [...members])if(!ids.has(id)){members.delete(id);others.delete(id);}for(const id of ids)members.add(id);fire();});
+  // presence 목록이 잠깐 늦게 와도 받은 상태(이름 등)는 지우지 않아요. 나간 사람만 leave 때 지워요
+  let askT=0;
+  ch.on('presence',{event:'sync'},()=>{const ids=new Set(Object.keys(ch.presenceState()));for(const id of [...members])if(!ids.has(id))members.delete(id);for(const id of ids)if(id!==myId)members.add(id);
+    if(!lobby&&[...members].some(id=>!others.has(id))&&Date.now()-askT>3000){askT=Date.now();ch.send({type:'broadcast',event:'need',payload:{id:myId}}).catch(()=>{});}
+    fire();});
+  if(!lobby){ch.on('presence',{event:'leave'},({key})=>{if(key&&key!==myId){const ps=ch.presenceState();if(!ps[key]){members.delete(key);others.delete(key);fire();}}});
+    ch.on('broadcast',{event:'need'},()=>{setTimeout(send,150+Math.random()*700);});}
   if(!lobby)ch.on('presence',{event:'join'},({key})=>{if(key!==myId)setTimeout(send,200+Math.random()*600);});
   const ready=new Promise((res,rej)=>{ch.subscribe(st=>{if(st==='SUBSCRIBED'){ch.track({at:Date.now()}).catch(()=>{});res();}else if(st==='CHANNEL_ERROR'||st==='TIMED_OUT')rej(new Error(st));});});
   return{ready,
@@ -910,22 +1044,28 @@ function onPeers(ch){
     if(pr.say&&typeof pr.say.text==='string'&&pr.say.ts!==e.sayTs){e.sayTs=pr.say.ts;bubble(e,pr.say.text);feed(W+': '+esc(plain(pr.say.text).slice(0,90)));}
     if(pr.emo&&typeof pr.emo.k==='string'&&pr.emo.ts!==e.emoTs){e.emoTs=pr.emo.ts;showEmo(e,pr.emo.k);if(EMOS.includes(pr.emo.k))feed(W+' '+ic(pr.emo.k));}
     if(e.gs){const prev=e.gsPrev;if(prev&&e.gs.s>prev.s)feed(W+' '+ic('dice')+' <i>+'+(e.gs.s-prev.s)+'</i> ('+e.gs.s+'점)');if(e.gs.w&&!(prev&&prev.w))feed(ic('trophy')+' '+W+' 30점! 이겼어요!');e.gsPrev={s:e.gs.s,w:e.gs.w};}
+    {const vn=pr.vis&&typeof pr.vis.n==='string'?npcs.find(n=>n.name===pr.vis.n):null;
+     if(vn!==e.visN){if(e.visN&&e.visN.remoteTo===e){e.visN.remoteTo=null;returning.add(e.visN);}
+       e.visN=vn;if(vn&&!vn.remoteTo&&!(visitor&&visitor.n===vn)&&talkTarget!==vn){vn.remoteTo=e;returning.delete(vn);bubble(vn,'안녕하세요!');}}}
     // 상대가 나(또는 다른 친구)에게 말을 쓰는 중이면 머리 위에 ••• 를 보여줘요
-    {const ty=pr.typ&&typeof pr.typ.to==='string'?pr.typ:null;const toMe=!!(ty&&myPeer&&ty.to===myPeer);const k=ty?(toMe?'me':'other'):'';
+    {let ty=pr.typ&&typeof pr.typ.to==='string'?pr.typ:null;
+     if(ty&&ty.ts!==e.typTs0){e.typTs0=ty.ts;e.typAt=performance.now();}
+     if(ty&&performance.now()-(e.typAt||0)>TYP_TTL)ty=null; // 오래 손을 안 대면 ••• 를 지워요
+     const toMe=!!(ty&&myPeer&&ty.to===myPeer);const k=ty?(toMe?'me':'other'):'';
      if(k!==e.typK){e.typK=k;if(e.typTag){untag(e.typTag);e.typTag=null;}
-       if(ty)e.typTag=tag('typing'+(toMe?' tome':''),'<i></i><i></i><i></i>',()=>e.g.position,3.2);
+       if(ty)e.typTag=tag('typing'+(toMe?' tome':''),'<span class="pen">'+ic('pencil')+'</span><i></i><i></i><i></i>',()=>e.g.position,3.2);
        typingChanged();}}
     const a=pr.ask;
     if(a&&myPeer&&a.to===myPeer&&typeof a.ts==='number'&&typeof a.text==='string'&&['hobby','where','propose','meet'].includes(a.kind)){
-      const k=p.peer+':'+a.ts;if(!handled.has(k)){handled.add(k);promptQ.push({from:e,a});renderPrompt();}}
+      const k=p.peer+':'+a.ts;if(!handled.has(k)){handled.add(k);chatPush(e,'t',String(a.text).slice(0,80));promptQ.push({from:e,a});renderPrompt();}}
     const r=pr.reply, pc=pconv[e.key];
     if(r&&myPeer&&r.to===myPeer&&pc&&pc.pending&&r.re===pc.pending.ts&&r.kind===pc.pending.kind)peerGotReply(e,r);
   }
-  for(const [id,e] of peers){if(!seen.has(id)){if(e.name)feed(ic('back')+' '+who(e.flag,e.name)+': 안녕히 계세요!');scene.remove(e.g);pickables.splice(pickables.indexOf(e.g),1);if(e.typTag){untag(e.typTag);e.typTag=null;}e.typK='';untag(e.nameTag);if(e.bub)untag(e.bub);if(e.actTag)untag(e.actTag);if(e.emoT)untag(e.emoT);peers.delete(id);typingChanged();}}
+  for(const [id,e] of peers){if(!seen.has(id)){if(e.name)feed(ic('back')+' '+who(e.flag,e.name)+': 안녕히 계세요!');scene.remove(e.g);pickables.splice(pickables.indexOf(e.g),1);if(e.typTag){untag(e.typTag);e.typTag=null;}e.typK='';if(e.visN&&e.visN.remoteTo===e){e.visN.remoteTo=null;returning.add(e.visN);}untag(e.nameTag);if(e.bub)untag(e.bub);if(e.actTag)untag(e.actTag);if(e.emoT)untag(e.emoT);peers.delete(id);typingChanged();}}
   updPeople();if(game.on)drawPanel();
 }
 let myTown=0;
-function updPeople(){$('#peopleChip').innerHTML=room?tx(T('friends',{t:myTown||1,n:peers.size})):tx(T('alone'));}
+function updPeople(){const n=[...peers.values()].filter(e=>e.name).length;$('#peopleChip').innerHTML=room?tx(T('friends',{t:myTown||1,n:n+1})):tx(T('alone'));}
 async function connectRoom(){
   try{
     const base=await useCap('room');if(!base)throw 0;
@@ -943,7 +1083,7 @@ async function connectRoom(){
     updPeople();
   }catch(e){room=null;updPeople();}
 }
-$('#peopleChip').onclick=()=>{toastMsg(tx(T('howto')),'');};
+$('#peopleChip').onclick=()=>{const list=[meWho()+' (나)'].concat([...peers.values()].filter(e=>e.name).map(e=>who(e.flag,e.name,e.color)));toastMsg(list.join('<br>'),tx(T('howto')));};
 
 /* ---------- conversation core: stages & cards ---------- */
 let talkTarget=null, sheetKind=null;
@@ -1081,6 +1221,19 @@ function headTalk(e,step,total,done){
   let d='';for(let i=0;i<total;i++)d+='<i class="'+(done||i<step?'on':'')+'"></i>';
   return '<div class="sh-head"><span class="dot" style="background:'+validColor(e.color||'#8a93a6')+'"></span><h2>'+esc((e.flag?e.flag+' ':'')+e.name)+'</h2><span class="dots" aria-label="'+(done?total:step)+'/'+total+'">'+d+'</span><button class="x" data-act="close" type="button" aria-label="닫기">×</button></div>';}
 const qbub=t=>'<div class="qbub"><div>'+tx(t)+'</div><button class="mini" type="button" data-act="speak" data-t="'+esc(plain(t))+'" aria-label="듣기">'+ic('spk')+'</button></div>';
+/* 대화 내용을 메신저처럼: 상대는 왼쪽, 나는 오른쪽(노란 말풍선). 친구·NPC 한 명마다 대화 하나 */
+const chats={};
+function chatOf(e){return chats[e.key]||(chats[e.key]={log:[],seen:0});}
+function chatPush(e,w,t){if(e.kind==='peer')lastPeerChat=performance.now();const c=chatOf(e);c.log.push({w,t:String(t||'').slice(0,120)});if(c.log.length>40)c.log.splice(0,c.log.length-40);}
+function chatHtml(e,typing){const c=chatOf(e),L=c.log.slice(-10),st=c.log.length-L.length;const av=(col,f)=>'<span class="av" style="background:'+validColor(col)+'">'+(f||'')+'</span>';
+  let h='<div class="chat">';
+  L.forEach((m,i)=>{const nw=st+i>=c.seen?' new':'';
+    if(m.w==='sys')h+='<div class="sys'+nw+'">'+tx(m.t)+'</div>';
+    else if(m.w==='me')h+='<div class="msg me'+nw+'">'+av(me.color,ctyOf().f)+'<div class="b">'+tx(m.t)+'</div></div>';
+    else h+='<div class="msg them'+(e.kind==='npc'?' npcm':'')+nw+'">'+av(e.color,e.flag)+'<div class="b">'+tx(m.t)+'</div><button class="mini" type="button" data-act="speak" data-t="'+esc(plain(m.t))+'" aria-label="듣기">'+ic('spk')+'</button></div>';});
+  if(typing)h+='<div class="msg them typing'+(c.typSeen?'':' new')+'">'+av(e.color,e.flag)+'<div class="b" aria-label="쓰고 있어요"><i></i><i></i><i></i></div></div>';
+  return h+'</div>';}
+function chatDone(root,e){const c=chatOf(e);c.seen=c.log.length;const ch=root.querySelector('.chat');if(ch){c.typSeen=!!ch.querySelector('.typing');ch.scrollTop=ch.scrollHeight;}else c.typSeen=false;}
 
 /* card builder (cards, or the Hangul keyboard behind the pencil button) */
 const CHO='ㄱㄲㄴㄷㄸㄹㅁㅂㅃㅅㅆㅇㅈㅉㅊㅋㅌㅍㅎ',JUNG='ㅏㅐㅑㅒㅓㅔㅕㅖㅗㅘㅙㅚㅛㅜㅝㅞㅟㅠㅡㅢㅣ';
@@ -1141,7 +1294,7 @@ function openTalk(e){
   logEv('talk',{with:e.name,kind:e.kind==='peer'?'peer':'npc',visit:!!(visitor&&visitor.n===e)});
   talkTarget=e;sheetKind='talk';sheet.classList.remove('tall');if(player.g)e.g.lookAt(player.g.position.x,0,player.g.position.z);
   if(e.kind==='peer'){let c=pconv[e.key];if(!c)c=pconv[e.key]={stage:'hobby',last:'',done:false,wait:false,pending:null,ph:null,b:newBuild(askSet('hobby'))};renderTalk();return;}
-  let c=convs[e.key];if(!c){c=convs[e.key]={stage:'hobby',react:'',done:false,endLine:'',b:newBuild(npcSetFor(e,'hobby'))};}
+  let c=convs[e.key];if(!c){c=convs[e.key]={stage:'hobby',react:'',done:false,endLine:'',b:newBuild(npcSetFor(e,'hobby'))};delete chats[e.key];chatPush(e,'t',npcLine(e,c));}
   renderTalk();if(!c.done){const l=npcLine(e,c);bubble(e,l);speak((c.react?c.react+' ':'')+l);}
 }
 function renderTalk(){
@@ -1149,23 +1302,25 @@ function renderTalk(){
   let h;
   if(e.kind==='peer'){
     const c=pconv[e.key];h=headTalk(e,PEER_FLOW.indexOf(c.stage),PEER_FLOW.length,c.done);
-    if(c.last)h+=qbub(c.last);
-    if(c.done)h+='<div class="endbox"><div class="fb ok">'+tx(c.endLine)+'</div></div>';
-    else if(c.wait)h+='<p class="hint">'+(e.typK==='me'?esc(e.name)+' · 쓰고 있어요<span class="dots"><i></i><i></i><i></i></span>':tx(T('waitAns',{name:e.name})))+'</p>';
+    const typing=c.wait&&e.typK==='me';
+    if(chatOf(e).log.length||typing)h+=chatHtml(e,typing);
+    if(c.done){}
+    else if(c.wait){if(!typing)h+='<p class="hint">'+tx(T('waitAns',{name:e.name}))+'</p>';}
     else h+='<p class="hint">'+tx(T('askNow'))+'</p>'+buildUI(c.b);
   }else{
     const c=convs[e.key];h=headTalk(e,NPC_FLOW.indexOf(c.stage),NPC_FLOW.length,c.done);
-    if(c.done)h+=qbub(c.endLine)+'<div class="endbox"><button class="btn ghost" type="button" data-act="restart">'+tx(T('again'))+'</button></div>';
-    else{h+=qbub((c.react?c.react+' ':'')+npcLine(e,c));if(c.stage==='propose')h+='<p class="hint">'+tx(T('askNow'))+'</p>';h+=buildUI(c.b);}
+    h+=chatHtml(e,!!c.thinking);
+    if(c.done)h+='<div class="endbox"><button class="btn ghost" type="button" data-act="restart">'+tx(T('again'))+'</button></div>';
+    else if(!c.thinking){if(c.stage==='propose')h+='<p class="hint">'+tx(T('askNow'))+'</p>';h+=buildUI(c.b);}
   }
-  sheet.innerHTML=h;sheet.hidden=false;syncTyping();
+  sheet.innerHTML=h;sheet.hidden=false;chatDone(sheet,e);syncTyping();
 }
 async function npcSend(){
   const e=talkTarget;if(!e)return;const c=convs[e.key],b=c.b;const q=npcLine(e,c),st=c.stage;
   const res=await checkBuild(b,q,me.hobby,renderTalk);ansLog('npc',q,b,res,{stage:st,npc:e.name,role:e.role||''});
   if(convs[e.key]!==c||c.b!==b)return;
   if(!res.ok){wrong(b,renderTalk);return;}
-  b.fb={ok:true};sayMe(res.text);renderTalk();
+  b.fb={ok:true};sayMe(res.text);chatPush(e,'me',res.text);c.thinking=true;renderTalk();
   if(st==='hobby'&&!prog.interviews[e.key]){prog.interviews[e.key]={name:e.name,hobby:e.hobby,where:pko(e.hobby)};save();updateMissions();}
   let endLine='';
   if(st==='meet'){const m=parseMeet(res.text);prog.appt={key:e.key,name:e.name,act:e.hobby,partnerHobby:e.hobby,place:HOB[e.hobby].place,day:m.day,hour:m.hour};save();updateMissions();
@@ -1173,10 +1328,10 @@ async function npcSend(){
   else if(st==='when'&&(e.role==='teacher'||(prog.appt&&prog.appt.key!==e.key)))endLine=e.role==='teacher'?'친구하고 같이 해요 :smile:':'만나서 반가워요! :smile:';
   const react=await aiReact(e,st==='propose'?res.text:q,res.text);
   await new Promise(r=>setTimeout(r,600));
-  if(convs[e.key]!==c)return;
+  if(convs[e.key]!==c)return;c.thinking=false;
   if(endLine){c.done=true;c.endLine=react+' '+endLine;}
   else{c.stage=NPC_FLOW[NPC_FLOW.indexOf(st)+1];c.react=react;c.b=newBuild(npcSetFor(e,c.stage));}
-  const say=c.done?c.endLine:(c.react+' '+npcLine(e,c));bubble(e,say);speak(say);
+  const say=c.done?c.endLine:(c.react+' '+npcLine(e,c));bubble(e,say);speak(say);chatPush(e,'t',say);
   if(talkTarget===e)renderTalk();
 }
 
@@ -1187,14 +1342,14 @@ function peerSend(){
   const e=talkTarget;if(!e)return;const c=pconv[e.key],b=c.b;const txt=buildText(b);
   const okp=b.set.ok.some(o=>norm(o)===norm(txt));ansLog('peer_ask','(친구에게 묻기) '+c.stage,b,{ok:okp,text:txt},{stage:c.stage,to:e.name});
   if(!okp){wrong(b,renderTalk);return;}
-  b.fb={ok:true};sayMe(txt);
+  b.fb={ok:true};sayMe(txt);chatPush(e,'me',txt);
   const ts=Date.now();c.wait=true;c.pending={ts,kind:c.stage};syncTyping();
   pub({ask:{to:e.peer,kind:c.stage,ts,text:txt}});
   setTimeout(()=>{if(talkTarget===e)renderTalk();},500);
 }
 function peerGotReply(e,r){
   const c=pconv[e.key];if(!c||!c.pending)return;const st=c.pending.kind;c.pending=null;c.wait=false;
-  c.last=String(r.text||'').slice(0,80);
+  c.last=String(r.text||'').slice(0,80);chatPush(e,'t',c.last);
   if(st==='hobby'&&HK.includes(r.h)){c.ph=r.h;e.hobby=r.h;prog.interviews[e.key]={name:e.name,hobby:r.h,where:pko(r.h)};save();updateMissions();}
   const ph=c.ph||me.hobby;
   if(st==='where'&&prog.appt){c.done=true;c.endLine='만나서 반가워요! :smile:';}
@@ -1202,6 +1357,7 @@ function peerGotReply(e,r){
   else if(st==='meet'){const day=WEEK.includes(r.day)?r.day:'토요일',hour=Number.isInteger(r.hour)?r.hour:15;
     prog.appt={key:e.key,name:e.name,act:ph,partnerHobby:ph,place:HOB[ph].place,day,hour};save();updateMissions();
     c.done=true;c.endLine=':promise: '+apptText(day,hour,HOB[ph].place).t+' 만나요!';toastMsg(tx(c.endLine),tx(T('promise')));}
+  if(c.done)chatPush(e,'sys',c.endLine);
   if(!c.done){c.stage=PEER_FLOW[PEER_FLOW.indexOf(st)+1];c.b=newBuild(askSet(c.stage,ph));}
   if(talkTarget===e)renderTalk();
 }
@@ -1221,41 +1377,45 @@ sheet.addEventListener('click',ev=>{
     const r=buildClick(actS.b,btn);if(r==='send')actSend();else if(r)renderAct();return;}
   if(a==='restart'&&talkTarget){delete convs[talkTarget.key];openTalk(talkTarget);return;}
   if(sheetKind==='talk'&&talkTarget){const e=talkTarget,c=e.kind==='peer'?pconv[e.key]:convs[e.key];if(!c||!c.b||c.done||c.wait)return;
-    const r=buildClick(c.b,btn);if(r==='send'){if(e.kind==='peer')peerSend();else npcSend();}else if(r)renderTalk();}
+    const r=buildClick(c.b,btn);if(e.kind==='peer')typingPing();if(r==='send'){if(e.kind==='peer')peerSend();else npcSend();}else if(r)renderTalk();}
 });
 
 /* a classmate asked me: answer with cards */
 const promptEl=$('#prompt');let pb=null;
 /* 쓰는 중 표시 (카톡의 ••• 처럼): 친구에게 질문 카드를 고르는 중이거나, 친구 질문에 대답 카드를 고르는 중이면 알려요 */
-let typSent='';
+let typSent='',typPing=0;const TYP_TTL=45000;
+// 카드를 누를 때마다 '아직 쓰는 중'을 다시 알려요 (4초에 한 번까지)
+function typingPing(){if(!typSent)return;const n=performance.now();if(n-typPing<4000)return;typPing=n;const [to,k]=typSent.split('|');pub({typ:{to,k,ts:Date.now()}});}
+// 받는 쪽: 45초 동안 새 소식이 없으면 ••• 를 지워요
+setInterval(()=>{const n=performance.now();let ch=false;for(const e of peers.values())if(e.typK&&n-(e.typAt||0)>TYP_TTL){e.typK='';if(e.typTag){untag(e.typTag);e.typTag=null;}ch=true;}if(ch)typingChanged();},1000);
 function syncTyping(){let t=null;
   try{
     if(!promptEl.hidden&&promptQ[0]&&!(pb&&pb.fb&&pb.fb.ok))t={to:promptQ[0].from.peer,k:'ans'};
     else if(!sheet.hidden&&sheetKind==='talk'&&talkTarget&&talkTarget.kind==='peer'){const c=pconv[talkTarget.key];if(c&&!c.wait&&!c.done)t={to:talkTarget.peer,k:'ask'};}
   }catch(e){return;}
-  const key=t?t.to+'|'+t.k:'';if(key===typSent)return;typSent=key;pub({typ:t});}
+  const key=t?t.to+'|'+t.k:'';if(key===typSent)return;typSent=key;typPing=performance.now();if(t)t.ts=Date.now();pub({typ:t});}
 function typingChanged(){
   const bar=$('#typBar');if(!bar)return;
   const list=[...peers.values()].filter(e=>e.typK==='me'&&e.name);
   // 그 친구와의 대화창에서 이미 기다리는 중이면 창 안에 보이니까 위 알림은 빼요
   const show=list.filter(e=>!(sheetKind==='talk'&&talkTarget===e&&!sheet.hidden));
-  if(!show.length){bar.hidden=true;}
-  else{const e=show[0];bar.innerHTML=(e.flag?e.flag+' ':'')+'<b>'+esc(e.name)+'</b>'+(show.length>1?' +'+(show.length-1):'')+' · 나에게 쓰고 있어요<span class="dots"><i></i><i></i><i></i></span>';bar.hidden=false;}
+  if(!show.length){bar.hidden=true;bar.dataset.h='';}
+  else{const e=show[0];const html=(e.flag?e.flag+' ':'')+'<b>'+esc(e.name)+'</b>'+(show.length>1?' +'+(show.length-1):'')+' <span class="pen">'+ic('pencil')+'</span> 쓰고 있어요<span class="dots"><i></i><i></i><i></i></span>';if(bar.dataset.h!==html){bar.dataset.h=html;bar.innerHTML=html;}bar.hidden=false;}
   if(sheetKind==='talk'&&talkTarget&&talkTarget.kind==='peer'&&!sheet.hidden){const c=pconv[talkTarget.key];if(c&&c.wait)renderTalk();}
 }
 function renderPrompt(){
   const it=promptQ[0];if(!it){promptEl.hidden=true;pb=null;syncTyping();return;}
   if(!pb||pb.it!==it){pb=newBuild(ansSet(it.a.kind,me.hobby));pb.it=it;speak(it.a.text);}
   let h='<div class="sh-head"><span class="dot" style="background:'+validColor(it.from.color||'#8a93a6')+'"></span><h2>'+esc(it.from.name)+'</h2><button class="x" data-act="close" type="button" aria-label="닫기">×</button></div>';
-  h+=qbub(String(it.a.text).slice(0,80))+buildUI(pb);
-  promptEl.innerHTML=h;promptEl.hidden=false;syncTyping();
+  h+=chatHtml(it.from,false)+buildUI(pb);
+  promptEl.innerHTML=h;promptEl.hidden=false;chatDone(promptEl,it.from);syncTyping();
 }
 promptEl.addEventListener('click',ev=>{
   const btn=ev.target.closest('button');if(!btn)return;
   if(btn.dataset.act==='close'){promptQ.shift();pb=null;renderPrompt();return;}
   if(btn.dataset.act==='speak'){speak(btn.dataset.t);return;}
   if(!pb||(pb.fb&&pb.fb.ok))return;
-  const r=buildClick(pb,btn);if(r==='send')answerSend();else if(r)renderPrompt();
+  const r=buildClick(pb,btn);typingPing();if(r==='send')answerSend();else if(r)renderPrompt();
 });
 async function answerSend(){
   const it=promptQ[0],b=pb;if(!it||!b)return;
@@ -1267,7 +1427,7 @@ async function answerSend(){
   if(kind==='meet'){const m=parseMeet(res.text);extra.day=m.day;extra.hour=m.hour;
     prog.appt={key:it.from.key,name:it.from.name,act:me.hobby,partnerHobby:it.from.hobby,place:HOB[me.hobby].place,day:m.day,hour:m.hour};save();updateMissions();
     toastMsg(ic('promise')+' '+esc(apptText(m.day,m.hour,HOB[me.hobby].place).t)+' 만나요.',tx(T('promise')));}
-  bubble(player,res.text);
+  bubble(player,res.text);chatPush(it.from,'me',res.text);renderPrompt();if(talkTarget===it.from&&!sheet.hidden)renderTalk();
   pub({say:{text:res.text,ts:Date.now()},reply:Object.assign({to:it.from.peer,kind,re:it.a.ts,yes,h:me.hobby,text:res.text},extra)});
   setTimeout(()=>{if(promptQ[0]===it){promptQ.shift();pb=null;renderPrompt();}},1300);
 }
@@ -1345,7 +1505,7 @@ $('#emoTray').onclick=ev=>{const b=ev.target.closest('[data-emo]');if(!b||!playe
   // 가까이 있는 NPC가 스티커로 대답해요
   let best=null,bd=4.5;for(const n of npcs.concat([...customNpcs.values()])){const d=d2(player.g.position,n.g.position.x,n.g.position.z);if(d<bd){bd=d;best=n;}}
   if(best)setTimeout(()=>showEmo(best,EMO_REPLY[k]),800);
-  if(k==='e_hi'&&!(visitor&&visitor.phase==='go')&&sheet.hidden){const near=best&&bd<2.5?best:null;if(visitor)endVisit();setTimeout(()=>callVisitor(true,near),900);}
+  if(k==='e_hi'&&!(visitor&&visitor.phase==='go')&&sheet.hidden&&!inPeerChat()){const near=best&&bd<2.5?best:null;if(visitor)endVisit();setTimeout(()=>callVisitor(true,near),900);}
   $('#emoTray').hidden=true;$('#emoBtn').setAttribute('aria-expanded','false');};
 function applyPose(ent,a,now,dt,isMe){
   const g=ent.g,sp=a.spot,t=(now-a.t0)/1000,u=g.userData;
@@ -1540,7 +1700,7 @@ function frame(now){
   requestAnimationFrame(frame);
 }
 requestAnimationFrame(frame);drawClock();markPlaces();updateMissions();
-if(false)window.__t={SPOTS,startAct,player,openAct,game,TILES,gq:()=>gq};
+if(false)window.__t={SPOTS,startAct,player,openAct,game,TILES,gq:()=>gq,npcs};
 
 /* ---------- 교사용 학습 기록 분석 ---------- */
 const CTX={npc:'NPC 대화',peer_ask:'친구에게 묻기',peer_answer:'친구에게 대답',act_place:'장소 활동 ① 에서',act_time:'장소 활동 ② 부터·까지',game:'보드게임',obj:'이/그/저'};
