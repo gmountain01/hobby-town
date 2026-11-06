@@ -223,6 +223,7 @@ select{font:inherit;font-size:15px;padding:8px 10px;border:1.5px solid var(--lin
 .emorow{display:flex;gap:8px;align-items:center}
 #feedBtn{width:44px;height:44px;border-radius:50%;border:2px solid var(--ink);background:#fff;box-shadow:0 2px 0 var(--ink);line-height:0;padding:0}
 #feedBtn .ico{width:28px;height:28px}#feedBtn[aria-expanded="true"]{background:var(--mark)}
+#dash .ddays{display:flex;gap:6px;flex-wrap:wrap;margin:0 0 10px}#dash .ddays button{font:inherit;font-size:14px;padding:6px 12px;border-radius:999px;border:1.5px solid #c9d3e3;background:#fff;color:#17233b;cursor:pointer}#dash .ddays button[aria-pressed=true]{background:#17233b;color:#fff;border-color:#17233b}#dash .ddays small{opacity:.7}
 #dash{position:fixed;inset:0;z-index:30;background:var(--paper);overflow-y:auto;padding-top:env(safe-area-inset-top,0px);padding-bottom:env(safe-area-inset-bottom,0px)}
 .dw{max-width:960px;margin:0 auto;padding:16px max(16px,env(safe-area-inset-right,0px)) 40px max(16px,env(safe-area-inset-left,0px));display:flex;flex-direction:column;gap:16px}
 .dh{display:flex;align-items:center;gap:10px;flex-wrap:wrap}.dh h1{margin:0;font-family:var(--display);font-weight:400;font-size:26px;flex:1 1 12em;min-width:0;white-space:nowrap}
@@ -1505,7 +1506,15 @@ if(false)window.__t={SPOTS,startAct,player,openAct,game,TILES,gq:()=>gq};
 const CTX={npc:'NPC 대화',peer_ask:'친구에게 묻기',peer_answer:'친구에게 대답',act_place:'장소 활동 ① 에서',act_time:'장소 활동 ② 부터·까지',game:'보드게임',obj:'이/그/저'};
 const QT={where:'+1 어디예요?',what:'+2 무엇을 해요?',when:'+3 언제 해요?',tog:'+3 같이 ~할까요?',like:'+3 무엇을 좋아해요?',whwh:'+4 어디에서 무엇을 해요?'};
 const SPOTKO=Object.fromEntries(SPOTS.map(x=>[x.id,P[x.place].ko]));
-let dashEv=[],dashPass='';
+let dashEv=[],dashPass='',dashAll=[],dashDay='';
+// 날짜별로 나눠 보기: 기록마다 시간(ts)이 있어서 날짜를 따로 저장할 필요가 없어요
+const dayKey=ts=>{const d=new Date(ts);return d.getFullYear()+'-'+String(d.getMonth()+1).padStart(2,'0')+'-'+String(d.getDate()).padStart(2,'0');};
+const dayLabel=k=>{const [y,m,d]=k.split('-').map(Number);return m+'월 '+d+'일 ('+'일월화수목금토'[new Date(y,m-1,d).getDay()]+')';};
+function dashDays(){const m=new Map();for(const e of dashAll){const k=dayKey(e.ts);if(!m.has(k))m.set(k,new Set());if(e.sid)m.get(k).add(e.sid);}return [...m.entries()].sort((a,b)=>a[0]<b[0]?1:-1).map(([k,v])=>({k,n:v.size}));}
+function pickDay(k){dashDay=k;dashEv=k==='all'?dashAll.slice():dashAll.filter(e=>dayKey(e.ts)===k);renderDash();}
+function dayChipsHtml(){const days=dashDays();if(!days.length)return '';
+  return '<div class="ddays" role="group" aria-label="날짜 고르기">'+days.map(d=>'<button type="button" data-day="'+d.k+'" aria-pressed="'+(dashDay===d.k)+'">'+dayLabel(d.k)+' <small>'+d.n+'명</small></button>').join('')+
+    '<button type="button" data-day="all" aria-pressed="'+(dashDay==='all')+'">전체 <small>'+new Set(dashAll.map(e=>e.sid)).size+'명</small></button></div>';}
 function grammarOf(a){const e=String(a.exp||''),g=[];
   if(a.ctx==='obj')return['이/그/저'];
   if(/에서/.test(e))g.push('에서 (장소)');if(/(시|요일)에\b|시에|요일에/.test(e))g.push('에 (시간)');if(/부터/.test(e))g.push('부터·까지');
@@ -1545,8 +1554,9 @@ function renderDash(){
   const R=analyze(dashEv);const studs=[...R.st.values()].filter(s=>s.name);
   const tot=R.A.length,ok=R.A.filter(a=>a.ok).length,f=R.A.filter(a=>a.tries===1),fok=f.filter(a=>a.ok).length;
   const mins=studs.length?Math.round(studs.reduce((t,s)=>t+Math.max(0,s.last-s.first),0)/studs.length/60000):0;
-  let h='<div class="tiles"><div class="tile2"><span>참여 학생</span><b>'+studs.length+'</b></div><div class="tile2"><span>대답한 수</span><b>'+tot+'</b></div><div class="tile2"><span>첫 시도 정답률</span><b>'+pct(fok,f.length)+'%</b></div><div class="tile2"><span>평균 참여 시간</span><b>'+mins+'분</b></div></div>';
-  if(!dashEv.length){$('#dBody').innerHTML=h+'<p class="hint">아직 기록이 없어요. 학생들이 마을에 들어와 대답하면 여기에 쌓여요.</p>';return;}
+  let h=dayChipsHtml()+'<div class="tiles"><div class="tile2"><span>참여 학생</span><b>'+studs.length+'</b></div><div class="tile2"><span>대답한 수</span><b>'+tot+'</b></div><div class="tile2"><span>첫 시도 정답률</span><b>'+pct(fok,f.length)+'%</b></div><div class="tile2"><span>평균 참여 시간</span><b>'+mins+'분</b></div></div>';
+  const bindDays=()=>$('#dBody').querySelectorAll('.ddays button').forEach(b=>b.onclick=()=>pickDay(b.dataset.day));
+  if(!dashEv.length){$('#dBody').innerHTML=h+'<p class="hint">아직 기록이 없어요. 학생들이 마을에 들어와 대답하면 여기에 쌓여요.</p>';bindDays();return;}
   const hobRows=Object.entries(R.hob).map(([k,v])=>({l:k,v,icon:icw(k)})).sort((a,b)=>b.v-a.v);
   const actRows=Object.entries(R.actH).map(([k,v])=>({l:k,v,icon:icw(k),sec:R.actSec[k]||0})).sort((a,b)=>b.v-a.v);
   const plRows=Object.entries(R.place).map(([k,v])=>({l:(P[k]||{}).ko||k,v,icon:icw((P[k]||{}).ko)})).sort((a,b)=>b.v-a.v);
@@ -1564,7 +1574,7 @@ function renderDash(){
     '<div class="row"><button class="btn" id="dAi" type="button"'+(sampleFn?'':' disabled')+'>AI로 오류 패턴 정리하기</button></div><div id="dAiOut"></div></div>';
   h+='<div class="dcard"><h2>학생별 기록</h2><div class="sub">줄을 누르면 그 학생의 활동 순서가 보여요</div><div style="overflow-x:auto"><table class="dt"><tr><th>학생</th><th>취미</th><th>대답</th><th>정답률</th><th>첫 시도</th><th>장소</th><th>활동</th><th>미션</th><th>게임</th><th>참여</th></tr>'+
     studs.sort((a,b)=>b.n-a.n).map(s=>{const c=COUNTRIES.find(x=>x.id===s.cty);return '<tr class="pick" data-sid="'+esc(s.sid)+'"><td>'+esc((c?c.f+' ':'')+s.name)+'</td><td>'+icw(s.hobby)+esc(s.hobby)+'</td><td class="n">'+s.n+'</td><td class="n">'+pct(s.ok,s.n)+'%</td><td class="n">'+pct(s.fok,s.f)+'%</td><td class="n">'+s.places.size+'</td><td class="n">'+s.acts+'</td><td class="n">'+s.mission+'/6</td><td class="n">'+s.score+'</td><td class="n">'+Math.round(Math.max(0,s.last-s.first)/60000)+'분</td></tr>';}).join('')+'</table></div><div id="dTl"></div></div>';
-  $('#dBody').innerHTML=h;
+  $('#dBody').innerHTML=h;bindDays();
   $('#dBody').querySelectorAll('tr.pick').forEach(tr=>tr.onclick=()=>{const s=R.st.get(tr.dataset.sid);if(!s)return;
     $('#dTl').innerHTML='<h2 style="font-size:15px;margin:10px 0 4px">'+esc(s.name)+'의 활동 순서</h2><div class="tl">'+s.ev.map(e=>'<div><time>'+tstr(e.ts)+'</time><span>'+esc(evLine(e))+'</span></div>').join('')+'</div>';});
   const ai=$('#dAi');if(ai)ai.onclick=()=>aiSummary(R);
@@ -1588,12 +1598,15 @@ async function loadDash(){
       if(r.status===401){dashPass='';$('#dLogin').hidden=false;$('#dLoginMsg').textContent='비밀번호가 맞지 않아요.';$('#dBody').innerHTML='';return;}
       if(r.status===429){dashPass='';$('#dLogin').hidden=false;$('#dLoginMsg').textContent='여러 번 틀렸어요. 1분 뒤에 다시 해 주세요.';$('#dBody').innerHTML='';return;}
       if(!r.ok)throw 0;const j=await r.json();$('#dLogin').hidden=true;
-      dashEv=(j.events||[]).map(e=>({ts:Date.parse(e.ts),sid:e.sid,name:e.name,cty:e.cty,town:e.town,type:e.type,d:e.data||{}}));
+      dashAll=(j.events||[]).map(e=>({ts:Date.parse(e.ts),sid:e.sid,name:e.name,cty:e.cty,town:e.town,type:e.type,d:e.data||{}}));
     }else{
       const d=await logDb();if(!d)throw 0;const snap=await d.collection('events').orderBy('at','asc').limit(1000).get();
-      dashEv=[];for(const doc of snap.docs){const v=doc.data()||{};if(Array.isArray(v.b))for(const e of v.b)if(e&&typeof e.type==='string')dashEv.push(e);}
+      dashAll=[];for(const doc of snap.docs){const v=doc.data()||{};if(Array.isArray(v.b))for(const e of v.b)if(e&&typeof e.type==='string')dashAll.push(e);}
     }
-    dashEv.sort((a,b)=>a.ts-b.ts);renderDash();
+    dashAll.sort((a,b)=>a.ts-b.ts);const days=dashDays();
+    // 처음엔 가장 최근 날짜를 보여줘요. 고른 날짜는 새로 불러와도 그대로예요
+    if(!dashDay||(dashDay!=='all'&&!days.some(d=>d.k===dashDay)))dashDay=days.length?days[0].k:'all';
+    pickDay(dashDay);
   }catch(e){$('#dBody').innerHTML='<p class="hint">기록을 불러오지 못했어요. 새로 불러오기를 눌러 주세요.</p>';}
 }
 function openDash(){$('#dash').hidden=false;loadDash();}
@@ -1603,7 +1616,7 @@ $('#dCsv').onclick=async()=>{
   const cols=['time','sid','name','country','town','type','ctx','question','expected','said','ok','tries','mode','ai','ms','hobby','place','detail'];
   const q=v=>{const t=String(v==null?'':v);return /[",\n]/.test(t)?'"'+t.replace(/"/g,'""')+'"':t;};
   const lines=[cols.join(',')].concat(dashEv.map(e=>{const d=e.d||{};return [new Date(e.ts).toISOString(),e.sid,e.name,e.cty,e.town,e.type,d.ctx||'',d.q||'',d.exp||'',d.said||'',d.ok===undefined?'':(d.ok?1:0),d.tries||'',d.mode||'',d.ai?1:'',d.ms||'',d.h||d.hobby||'',d.p||d.place||d.spot||'',e.type==='answer'?'':evLine(e)].map(q).join(',');}));
-  const data='﻿'+lines.join('\n'),fn='hobby-town-log-'+new Date().toISOString().slice(0,10)+'.csv';
+  const data='﻿'+lines.join('\n'),fn='hobby-town-log-'+(dashDay&&dashDay!=='all'?dashDay:'all')+'.csv';
   if(!DEPLOYED){try{const dl=await window.claude.use('downloads');if(dl){await dl.save({filename:fn,data});return;}}catch(e){return;}}
   const a=document.createElement('a');a.href=URL.createObjectURL(new Blob([data],{type:'text/csv'}));a.download=fn;document.body.appendChild(a);a.click();a.remove();
 };
