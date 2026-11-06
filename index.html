@@ -633,7 +633,7 @@ const scene=new THREE.Scene();
 scene.background=new THREE.Color('#bfe3ee');
 scene.fog=new THREE.Fog('#bfe3ee',55,105);
 const camera=new THREE.PerspectiveCamera(45,1,.1,200);
-scene.add(new THREE.HemisphereLight('#ffffff','#7fa86a',.9));
+const hemi=new THREE.HemisphereLight('#ffffff','#7fa86a',.9);scene.add(hemi);
 const sun=new THREE.DirectionalLight('#fff3d8',.65);sun.position.set(20,40,12);scene.add(sun);
 const mc={};const mat=(c,e)=>{const k=c+(e||'');return mc[k]||(mc[k]=new THREE.MeshLambertMaterial(e?{color:c,emissive:e}:{color:c}));};
 function add(geo,c,x,y,z,parent,e){const m=new THREE.Mesh(geo,mat(c,e));m.position.set(x,y,z);(parent||scene).add(m);return m;}
@@ -764,7 +764,8 @@ function awning(id,c1,c2){const r=roomOf(id);const tex=canvasTex(64,16,(g,w,h)=>
   const m=new THREE.Mesh(new THREE.PlaneGeometry(2.9,1),fadeMat(r,{map:tex,side:THREE.DoubleSide}));m.position.set(r.x,2.45,r.z+r.d/2+.55);m.rotation.x=-Math.PI/2+.55;scene.add(m);
   // 차양 끝 물결 장식
   for(let i=0;i<6;i++){const sc=new THREE.Mesh(new THREE.CircleGeometry(.24,10,0,Math.PI),fadeMat(r,{color:i%2?c2:c1,side:THREE.DoubleSide}));sc.rotation.z=Math.PI;sc.position.set(r.x-1.21+i*.484,2.03,r.z+r.d/2+.98);scene.add(sc);}}
-function windows(id,frame){const r=roomOf(id);const gm=fadeMat(r,{color:'#cfeeff',emissive:'#2a4a66'}),fm=fadeMat(r,{color:frame||'#ffffff'});
+const NIGHT_GLOW=[]; // 밤에 불이 켜지는 창문·가로등
+function windows(id,frame){const r=roomOf(id);const gm=fadeMat(r,{color:'#cfeeff',emissive:'#2a4a66'});NIGHT_GLOW.push({m:gm,day:new THREE.Color('#2a4a66'),night:new THREE.Color('#ffc766')});const fm=fadeMat(r,{color:frame||'#ffffff'});
   const put=(x,y,z,ry)=>{const f=new THREE.Mesh(box(1.25,1.05,.08),fm);f.position.set(x,y,z);f.rotation.y=ry;scene.add(f);const gl=new THREE.Mesh(box(1.05,.85,.1),gm);gl.position.set(x,y,z);gl.rotation.y=ry;scene.add(gl);
     const bar=new THREE.Mesh(box(.06,.85,.12),fm);bar.position.set(x,y,z);bar.rotation.y=ry;scene.add(bar);};
   const y=Math.min(2.2,r.h-1.4),seg=(r.w-2.2)/2;
@@ -812,6 +813,17 @@ if(document.fonts&&document.fonts.load)document.fonts.load('68px "Black Han Sans
 function lamp(x,z,ry){const g=new THREE.Group();g.position.set(x,0,z);g.rotation.y=ry||0;scene.add(g);
   add(cyl(.09,.12,3.6,8),'#3a4766',0,1.8,0,g);add(box(.9,.08,.08),'#3a4766',.4,3.55,0,g);add(box(.42,.22,.42),'#fff3c4',.8,3.42,0,g,'#c9a24a');}
 [[-30,2.3],[-21,7.7],[21,7.7],[30,2.3],[-2.7,24],[2.7,24],[-2.7,-15],[2.7,-15]].forEach(([x,z])=>lamp(x,z,x<0?0:Math.PI));
+NIGHT_GLOW.push({m:mat('#fff3c4','#c9a24a'),day:new THREE.Color('#5a4a20'),night:new THREE.Color('#ffd36b')});
+/* ---------- 낮과 밤: 마을 시계(24시간)에 맞춰 하늘·햇빛·불빛이 바뀌어요 ---------- */
+const SKY=[[0,'#1d2a5c',.42,.08],[4.5,'#24346a',.44,.1],[6,'#f2b8a0',.6,.35],[7.5,'#bfe3ee',.85,.6],[17,'#bfe3ee',.9,.65],[18.5,'#f4a988',.7,.4],[19.7,'#4a4f8f',.5,.15],[21,'#1d2a5c',.42,.08],[24,'#1d2a5c',.42,.08]];
+const skyA=new THREE.Color(),skyB=new THREE.Color();
+function applyDayNight(hour){let i=0;while(i<SKY.length-2&&hour>=SKY[i+1][0])i++;const a=SKY[i],b=SKY[i+1],t=Math.min(1,Math.max(0,(hour-a[0])/(b[0]-a[0])));
+  skyA.set(a[1]).lerp(skyB.set(b[1]),t);scene.background.copy(skyA);scene.fog.color.copy(skyA);
+  hemi.intensity=a[2]+(b[2]-a[2])*t;sun.intensity=a[3]+(b[3]-a[3])*t;
+  const night=Math.max(0,Math.min(1,1-(sun.intensity-.08)/.45)); // 0 = 낮, 1 = 밤
+  hemi.color.setRGB(1-.25*night,1-.2*night,1);sun.color.set(night>.6?'#a9bcff':'#fff3d8');
+  const ang=(hour-6)/12*Math.PI;sun.position.set(Math.cos(ang)*40,Math.max(8,Math.sin(ang)*40),12);
+  for(const g of NIGHT_GLOW)g.m.emissive.copy(g.day).lerp(g.night,night);}
 function bench(x,z,ry){const g=new THREE.Group();g.position.set(x,0,z);g.rotation.y=ry||0;scene.add(g);
   add(box(1.9,.1,.55),'#c98a55',0,.48,0,g);add(box(1.9,.45,.08),'#c98a55',0,.85,-.26,g);for(const sx of [-.8,.8])add(box(.1,.48,.5),'#3a4766',sx,.24,0,g);}
 bench(-26,8.4,Math.PI);bench(26,8.4,Math.PI);bench(4.2,26,-Math.PI/2);
@@ -1723,6 +1735,7 @@ function toastMsg(html,en,say){
 }
 
 /* ---------- clock ---------- */
+// 마을 시계: 현실 시간이 아니라 수업용 시계예요. 오전 9시에 시작해서 1초에 2분씩 흘러요 (하루 = 약 12분)
 let gm=9*60;
 function timeFull(){const h=Math.floor(gm/60),m=Math.floor((gm%60)/10)*10;return ampm(h)+' '+HW[h%12]+' 시'+(m?' '+SINO[m/10]+' 분':'');}
 function drawClock(){const h=Math.floor(gm/60),m=Math.floor((gm%60)/10)*10;$('#clock').innerHTML='<b>'+(window.innerWidth>420?'토요일 ':'')+timeFull()+'</b><span>'+(h%12||12)+':'+String(m).padStart(2,'0')+'</span>';}
@@ -1806,7 +1819,7 @@ function frame(now){
   spotRingMat.opacity=.55+Math.sin(now/260)*.35;disco.rotation.y+=dt*1.5;
   for(let i=0;i<SCREENS.length;i++)SCREENS[i].emissive.setHSL(((now/4000)+i*.17)%1,.55,.32);
   for(let i=floaters.length-1;i>=0;i--){const f=floaters[i];f.life+=dt;f.p.y+=dt*1.1;f.t.el.style.opacity=String(Math.max(0,1-f.life/1.6));if(f.life>1.6){untag(f.t);floaters.splice(i,1);}}
-  if(clockRun){gm+=dt*clockRun.speed;if(gm>=clockRun.to){gm=clockRun.to;clockRun=null;}}else{gm+=dt*2;if(gm>=21*60)gm=9*60;}clockT+=dt;if(clockT>.5){clockT=0;drawClock();}
+  if(clockRun){gm+=dt*clockRun.speed;if(gm>=clockRun.to){gm=clockRun.to;clockRun=null;}}else{gm+=dt*2;if(gm>=24*60)gm-=24*60;}clockT+=dt;if(clockT>.25){clockT=0;drawClock();applyDayNight(gm/60);}
   renderer.render(scene,camera);
   const w=window.innerWidth,h=window.innerHeight;
   for(const t of tags){if(t.hide){t.el.style.display='none';continue;}if(t.cull){const gp=t.getPos();if(Math.hypot(gp.x-camLook.x,gp.z-camLook.z)>20){t.el.style.display='none';continue;}}tmp.copy(t.getPos());tmp.y+=t.dy;tmp.project(camera);
@@ -1815,7 +1828,7 @@ function frame(now){
   requestAnimationFrame(frame);
 }
 requestAnimationFrame(frame);drawClock();markPlaces();updateMissions();
-if(false)window.__t={SPOTS,startAct,player,openAct,game,TILES,gq:()=>gq,npcs};
+if(false)window.__t={SPOTS,startAct,player,openAct,game,TILES,gq:()=>gq,npcs,setGm:v=>{gm=v;}};
 
 /* ---------- 교사용 학습 기록 분석 ---------- */
 const CTX={npc:'NPC 대화',peer_ask:'친구에게 묻기',peer_answer:'친구에게 대답',act_place:'장소 활동 ① 에서',act_time:'장소 활동 ② 부터·까지',game:'보드게임',obj:'이/그/저'};
