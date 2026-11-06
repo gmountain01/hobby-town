@@ -552,12 +552,13 @@ function speak(t){if(!('speechSynthesis' in window))return;t=plain(t);if(!t)retu
 // sndMode 2 = 음악+효과음, 1 = 효과음만, 0 = 끄기
 let AC=null,master=null,bgmBus=null,sfxBus=null,sndMode=2,bgmOn=false,bgmT=null,bgmNext=0,bgmStep=0;
 try{const v=localStorage.getItem('ht-snd');if(v!==null)sndMode=Math.max(0,Math.min(2,+v));}catch(e){}
-const BGM_VOL=.055,SFX_VOL=.22;
+const BGM_VOL=.055,SFX_VOL=.22,FILE_VOL=.16; // FILE_VOL: 배경음악 파일(bgm.mp3) 소리 크기. 원래보다 약 16dB 작게
+let fileBus=null,bgmEl=null,bgmFail=false;
 function audioInit(){if(AC)return AC;const C=window.AudioContext||window.webkitAudioContext;if(!C)return null;
   try{AC=new C();master=AC.createGain();master.gain.value=1;master.connect(AC.destination);
     const lp=AC.createBiquadFilter();lp.type='lowpass';lp.frequency.value=2600;lp.connect(master);
-    bgmBus=AC.createGain();bgmBus.gain.value=0;bgmBus.connect(lp);sfxBus=AC.createGain();sfxBus.gain.value=SFX_VOL;sfxBus.connect(master);
-    document.addEventListener('visibilitychange',()=>{if(!AC)return;if(document.hidden)AC.suspend().catch(()=>{});else AC.resume().catch(()=>{});});
+    bgmBus=AC.createGain();bgmBus.gain.value=0;bgmBus.connect(lp);fileBus=AC.createGain();fileBus.gain.value=0;fileBus.connect(master);sfxBus=AC.createGain();sfxBus.gain.value=SFX_VOL;sfxBus.connect(master);
+    document.addEventListener('visibilitychange',()=>{if(!AC)return;if(document.hidden){AC.suspend().catch(()=>{});if(bgmEl)bgmEl.pause();}else{AC.resume().catch(()=>{});if(bgmEl&&bgmOn&&!bgmFail)bgmEl.play().catch(()=>{});}});
   }catch(e){AC=null;}return AC;}
 function tone(f,t0,dur,type,vol,bus,glide){const o=AC.createOscillator(),g=AC.createGain();o.type=type||'sine';o.frequency.setValueAtTime(f,t0);if(glide)o.frequency.exponentialRampToValueAtTime(glide,t0+dur);
   g.gain.setValueAtTime(0,t0);g.gain.linearRampToValueAtTime(vol,t0+Math.min(.02,dur/4));g.gain.exponentialRampToValueAtTime(.0005,t0+dur);o.connect(g);g.connect(bus||sfxBus);o.start(t0);o.stop(t0+dur+.05);}
@@ -590,9 +591,21 @@ function bgmTick(){if(!AC||!bgmOn)return;const spb=60/84/2;
     if(k%2===0||r<.35){const pool=PENTA.filter(n=>ch.some(c=>(n-c)%12===0)||r<.4);const n=pool[Math.floor(r*pool.length)]||PENTA[0];
       if(r<.82){tone(NF(n),t,.55,'sine',.22,bgmBus);tone(NF(n+12),t,.25,'sine',.05,bgmBus);}}
     bgmNext+=spb;bgmStep++;}}
-function bgmSet(on){if(!AC)return;if(on&&!bgmOn){bgmOn=true;bgmNext=AC.currentTime+.1;bgmBus.gain.cancelScheduledValues(AC.currentTime);bgmBus.gain.setTargetAtTime(BGM_VOL,AC.currentTime,.8);bgmT=setInterval(bgmTick,120);bgmTick();}
-  else if(!on&&bgmOn){bgmOn=false;clearInterval(bgmT);bgmBus.gain.setTargetAtTime(0,AC.currentTime,.3);}}
-function duck(d){if(!AC||!bgmBus||!bgmOn)return;bgmBus.gain.setTargetAtTime(d?BGM_VOL*.3:BGM_VOL,AC.currentTime,.15);}
+// 배경음악: bgm.mp3(Morning Sunlight Sanctuary)를 작게 반복해요. 파일을 못 받으면 브라우저가 만든 잔잔한 곡으로 대신해요
+function bgmFileEl(){if(bgmEl||bgmFail)return bgmEl;
+  try{bgmEl=new Audio();bgmEl.loop=true;bgmEl.preload='auto';bgmEl.setAttribute('playsinline','');bgmEl.src='bgm.mp3';
+    AC.createMediaElementSource(bgmEl).connect(fileBus);
+    bgmEl.addEventListener('error',()=>{bgmFail=true;bgmEl=null;if(bgmOn){bgmOn=false;bgmSet(true);}});
+  }catch(e){bgmFail=true;bgmEl=null;}return bgmEl;}
+function bgmGen(on){if(on){bgmNext=AC.currentTime+.1;bgmBus.gain.cancelScheduledValues(AC.currentTime);bgmBus.gain.setTargetAtTime(BGM_VOL,AC.currentTime,.8);clearInterval(bgmT);bgmT=setInterval(bgmTick,120);bgmTick();}
+  else{clearInterval(bgmT);bgmBus.gain.setTargetAtTime(0,AC.currentTime,.3);}}
+function bgmSet(on){if(!AC)return;
+  if(on&&!bgmOn){bgmOn=true;const el=bgmFileEl();
+    if(el){fileBus.gain.cancelScheduledValues(AC.currentTime);fileBus.gain.setValueAtTime(0,AC.currentTime);fileBus.gain.setTargetAtTime(FILE_VOL,AC.currentTime,1.2);
+      el.play().catch(()=>{ /* 자동 재생이 막히면 다음 터치 때 다시 시도해요 */ document.addEventListener('pointerdown',()=>{if(bgmOn&&bgmEl)bgmEl.play().catch(()=>{});},{once:true});});}
+    else bgmGen(true);}
+  else if(!on&&bgmOn){bgmOn=false;bgmGen(false);if(fileBus)fileBus.gain.setTargetAtTime(0,AC.currentTime,.3);if(bgmEl)setTimeout(()=>{if(!bgmOn&&bgmEl)bgmEl.pause();},1200);}}
+function duck(d){if(!AC||!bgmOn)return;const t=AC.currentTime;if(bgmEl&&fileBus)fileBus.gain.setTargetAtTime(d?FILE_VOL*.35:FILE_VOL,t,.15);else if(bgmBus)bgmBus.gain.setTargetAtTime(d?BGM_VOL*.3:BGM_VOL,t,.15);}
 function soundApply(){bgmSet(sndMode===2);const b=document.getElementById('sndBtn');if(b){b.innerHTML=ic(sndMode===2?'music':sndMode===1?'spk':'phoneoff');b.setAttribute('aria-label',['소리 끄기','효과음만','음악과 효과음'][sndMode]);b.dataset.m=sndMode;}}
 function soundStart(){if(!audioInit())return;AC.resume().catch(()=>{});soundApply();}
 
