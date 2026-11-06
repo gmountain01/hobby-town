@@ -1,0 +1,59 @@
+<!doctype html>
+<html lang="ko"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+<title>취미 마을 부하 테스트</title>
+<style>
+:root{--ink:#17233b;--muted:#5a6680;--line:#d5deea;--ok:#1d8f50;--bad:#cf3f36;--accent:#1c5bd0}
+body{margin:0;font:15px/1.5 system-ui,"Apple SD Gothic Neo","Malgun Gothic",sans-serif;color:var(--ink);background:#f4f7fb;padding:16px}
+main{max-width:640px;margin:0 auto;display:flex;flex-direction:column;gap:12px}
+h1{font-size:22px;margin:0}
+label{display:flex;flex-direction:column;gap:4px;font-size:13px;color:var(--muted)}
+input{font:inherit;padding:8px 10px;border:1.5px solid var(--line);border-radius:8px}
+.row{display:flex;gap:8px;flex-wrap:wrap}
+button{font:inherit;padding:10px 16px;border:0;border-radius:10px;background:var(--accent);color:#fff;font-weight:700;cursor:pointer}
+button.ghost{background:#e3e9f3;color:var(--ink)}
+.stats{display:grid;grid-template-columns:repeat(4,1fr);gap:8px}
+.stats div{background:#fff;border:1px solid var(--line);border-radius:10px;padding:8px}
+.stats b{display:block;font-size:22px;font-variant-numeric:tabular-nums}
+pre{background:#fff;border:1px solid var(--line);border-radius:10px;padding:10px;max-height:240px;overflow:auto;font-size:12px;white-space:pre-wrap}
+</style></head>
+<body><main>
+<h1>취미 마을 부하 테스트</h1>
+<p>가짜 학생(봇)을 여러 명 들여보내서 실시간 접속이 버티는지 확인해요. 봇은 3초마다 움직이고 가끔 감정 스티커를 보내요. 그동안 다른 폰으로 마을에 들어가서 움직임이 끊기지 않는지 보세요.</p>
+<label>Supabase Project URL<input id="url" placeholder="https://xxxx.supabase.co"></label>
+<label>anon public 키<input id="key"></label>
+<div class="row"><label>봇 수<input id="n" type="number" value="50" min="1" max="80"></label><label>시간(초)<input id="sec" type="number" value="180" min="30" max="900"></label></div>
+<div class="row"><button id="go" type="button">시작</button><button id="stop" class="ghost" type="button">멈춤</button></div>
+<div class="stats"><div>접속한 봇<b id="sJoin">0</b></div><div>보낸 메시지<b id="sSent">0</b></div><div>받은 메시지<b id="sRecv">0</b></div><div>오류<b id="sErr">0</b></div></div>
+<pre id="log"></pre>
+</main>
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2.58.0/dist/umd/supabase.js"></script>
+<script>
+const $=s=>document.querySelector(s);let bots=[],timer=null;const st={join:0,sent:0,recv:0,err:0};
+const log=m=>{$('#log').textContent=new Date().toLocaleTimeString()+'  '+m+'\n'+$('#log').textContent;};
+const draw=()=>{$('#sJoin').textContent=st.join;$('#sSent').textContent=st.sent;$('#sRecv').textContent=st.recv;$('#sErr').textContent=st.err;};
+const EMOS=['e_happy','e_love','e_laugh','e_wow','e_hi'];
+async function bot(i,url,key,townOf){
+  const c=supabase.createClient(url,key);const id='bot'+i+'_'+Math.random().toString(36).slice(2,6);
+  const town=townOf(i);
+  const lobby=c.channel('ht-lobby',{config:{presence:{key:id}}});
+  await new Promise(r=>lobby.subscribe(s=>{if(s==='SUBSCRIBED'){lobby.track({town,at:Date.now()});r();}else if(s!=='CLOSED'){st.err++;log('봇'+i+' 로비 '+s);r();}}));
+  const ch=c.channel('ht-town-'+town,{config:{presence:{key:id},broadcast:{self:false}}});
+  ch.on('broadcast',{event:'st'},()=>{st.recv++;});
+  await new Promise(r=>ch.subscribe(s=>{if(s==='SUBSCRIBED'){ch.track({at:Date.now()});st.join++;r();}else if(s!=='CLOSED'){st.err++;log('봇'+i+' 마을 '+s);r();}}));
+  const state={name:'봇'+i,color:'#8a93a6',hobby:'수영',cty:'xx',x:0,z:-8};
+  const tick=()=>{state.x=Math.round((Math.random()*30-15)*10)/10;state.z=Math.round((Math.random()*30-10)*10)/10;
+    if(Math.random()<.15)state.emo={k:EMOS[Math.floor(Math.random()*EMOS.length)],ts:Date.now()};
+    ch.send({type:'broadcast',event:'st',payload:{id,s:state}}).then(r=>{if(r==='ok')st.sent++;else{st.err++;}}).catch(()=>st.err++);};
+  const iv=setInterval(tick,2500+Math.random()*1500);tick();
+  return{stop:()=>{clearInterval(iv);c.removeAllChannels();}};
+}
+$('#go').onclick=async()=>{
+  const url=$('#url').value.trim(),key=$('#key').value.trim(),n=Math.min(80,+$('#n').value||50),sec=+$('#sec').value||180;
+  if(!url||!key){log('URL과 키를 넣어 주세요');return;}
+  Object.assign(st,{join:0,sent:0,recv:0,err:0});log(n+'명 시작 (마을당 9명 — 내 폰이 들어갈 자리 1개씩 남겨요)');
+  for(let i=0;i<n;i++){bots.push(await bot(i,url,key,k=>Math.floor(k/9)+1));draw();await new Promise(r=>setTimeout(r,120));}
+  timer=setInterval(draw,500);setTimeout(()=>{$('#stop').click();log('끝. 오류가 0에 가깝고 받은 메시지가 계속 늘었으면 괜찮아요.');},sec*1000);
+};
+$('#stop').onclick=()=>{bots.forEach(b=>b.stop());bots=[];clearInterval(timer);draw();log('멈춤');};
+</script>
+</body></html>
