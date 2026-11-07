@@ -895,22 +895,26 @@ function busyNow(){lastBusy=performance.now();}
 let lastPeerChat=-1e9;
 // 사람끼리 어울리는 중이면 NPC가 끼어들지 않아요:
 //  · 친구와 말을 주고받은 뒤 90초 · 옆 친구(12칸 안)가 말하거나 스티커를 보낸 뒤 60초
-//  · 친구가 바로 옆(5칸 안)에 서 있을 때 · 서로 쓰는 중이거나 대답을 기다릴 때
+//  · 서로 쓰는 중일 때 · 친구 대답을 기다릴 때(최대 60초 — 친구가 나가거나 대답을 안 하면 다시 와요)
+//  (친구가 옆에 서 있기만 한 건 대화가 아니에요. 다 같이 광장에서 시작해서 그걸 막으면 NPC가 아무에게도 안 와요)
 let lastNearSocial=-1e9;
 const nearMe=(e,d)=>e&&e.g&&player.g&&d2(player.g.position,e.g.position.x,e.g.position.z)<d;
 function noteSocial(e){if(!e||e.kind!=='peer'||nearMe(e,12))lastNearSocial=performance.now();}
 function inPeerChat(){const now=performance.now();if(now-lastPeerChat<90000||now-lastNearSocial<60000)return true;
-  for(const e of peers.values())if(e.name&&nearMe(e,5))return true;
   for(const e of peers.values())if(e.typK==='me')return true;
-  for(const k in pconv){const c=pconv[k];if(c&&c.wait&&!c.done)return true;}
+  for(const k in pconv){const c=pconv[k];if(c&&c.wait&&!c.done&&c.pending&&Date.now()-c.pending.ts<60000&&[...peers.values()].some(e=>e.key===k))return true;}
   try{return typSent!=='';}catch(e){return false;}}
 function canVisit(){return !window.__noVisit&&player.g&&!player.target&&!player.act&&!game.on&&sheet.hidden&&!promptQ.length&&$('#intro').hidden&&!inPeerChat();}
 function callVisitor(prefer,skip){
   if(visitor||!player.g)return;const pp=player.g.position;
-  const cands=npcs.filter(n=>n!==skip&&!returning.has(n)&&!n.remoteTo&&n.name!=='민우'&&!(convs[n.key]&&convs[n.key].done)&&d2(pp,n.g.position.x,n.g.position.z)<(prefer?14:28));
+  const base=npcs.filter(n=>n!==skip&&!returning.has(n)&&!n.remoteTo&&n.name!=='민우'&&d2(pp,n.g.position.x,n.g.position.z)<(prefer?14:28));
+  // 아직 대화를 끝내지 않은 NPC가 먼저 와요. 다 끝냈으면 끝낸 NPC가 처음부터 다시 물어봐요
+  let cands=base.filter(n=>!(convs[n.key]&&convs[n.key].done));
+  if(!cands.length){cands=base;}
   if(!cands.length)return;
   cands.sort((a,b)=>d2(pp,a.g.position.x,a.g.position.z)-d2(pp,b.g.position.x,b.g.position.z));
   const n=prefer?cands[0]:cands[Math.floor(Math.random()*Math.min(4,cands.length))];
+  if(convs[n.key]&&convs[n.key].done){delete convs[n.key];delete chats[n.key];}
   visitor={n,phase:'go',t:performance.now()};sfx('hello');pub({vis:{n:n.name,ts:Date.now()}});logEv('visitor',{npc:n.name,why:prefer?'wave':'idle'});n.askTag=tag('actic',ic('ask'),()=>n.g.position,3.1);bubble(n,'안녕하세요!');
   feed(ic('ask')+' '+who(n.flag,n.name,n.color)+': 안녕하세요!');
 }
