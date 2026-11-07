@@ -278,6 +278,13 @@ select{font:inherit;font-size:15px;padding:8px 10px;border:1.5px solid var(--lin
 .fl b{font-weight:700}.fl .ico{width:18px;height:18px;vertical-align:-.25em}
 .fl i{font-style:normal;color:#ffe169}
 .emorow{display:flex;gap:8px;align-items:center}
+#guideBtn{height:44px;display:flex;align-items:center;gap:5px;padding:0 14px 0 10px;border-radius:999px;border:2px solid var(--ink);background:#fff;box-shadow:0 2px 0 var(--ink);font:inherit;font-weight:700;font-size:16px;color:var(--ink)}#guideBtn .ico{width:24px;height:24px}
+#guideOv{position:fixed;inset:0;z-index:30;background:#17233b;display:flex;flex-direction:column;padding-top:env(safe-area-inset-top,0px);padding-bottom:env(safe-area-inset-bottom,0px)}
+#guideOv .gbar{display:flex;align-items:center;gap:8px;padding:8px max(12px,env(safe-area-inset-right,0px)) 8px max(12px,env(safe-area-inset-left,0px));color:#fff;font-size:18px}
+#guideOv .gbar .ico{width:24px;height:24px}#guideOv .gbar b{flex:1}
+#guideOv .gbar a{color:#cfe0ff;font-size:14px;text-decoration:underline;padding:6px}
+#guideX{width:44px;height:44px;border-radius:50%;border:0;background:#fff;color:#17233b;font-size:28px;line-height:1;font-weight:700}
+#guideFr{flex:1;width:100%;border:0;background:#fff}
 #sndBtn{width:44px;height:44px;border-radius:50%;border:2px solid var(--ink);background:#fff;box-shadow:0 2px 0 var(--ink);line-height:0;padding:0}#sndBtn .ico{width:26px;height:26px}#sndBtn[data-m="0"]{opacity:.55}
 #feedBtn{width:44px;height:44px;border-radius:50%;border:2px solid var(--ink);background:#fff;box-shadow:0 2px 0 var(--ink);line-height:0;padding:0}
 #feedBtn .ico{width:28px;height:28px}#feedBtn[aria-expanded="true"]{background:var(--mark)}
@@ -339,6 +346,7 @@ select{font:inherit;font-size:15px;padding:8px 10px;border:1.5px solid var(--lin
 <canvas id="c" aria-label="3D 동네 화면. 땅을 누르면 그곳으로 걸어가요."></canvas>
 <div id="tags"></div>
 <div id="typBar" hidden role="status" aria-live="polite"></div>
+<div id="guideOv" hidden role="dialog" aria-modal="true" aria-label="설명"><div class="gbar"><svg class="ico" aria-hidden="true"><use href="#i-book"/></svg><b>설명</b><a id="guideNew" href="guide/index.html" target="_blank" rel="noopener">새 창</a><button id="guideX" type="button" aria-label="닫기">×</button></div><iframe id="guideFr" title="취미 마을 설명"></iframe></div>
 
 <div class="hud">
   <div class="chip clock" id="clock"><b>토요일 오전 아홉 시</b><span>9:00</span></div>
@@ -353,7 +361,7 @@ select{font:inherit;font-size:15px;padding:8px 10px;border:1.5px solid var(--lin
 
 <div id="emoBar" hidden>
   <div id="emoTray" role="group" aria-label="감정" hidden></div>
-  <div class="emorow"><button id="emoBtn" type="button" aria-label="감정" aria-expanded="false"><svg class="ico" aria-hidden="true"><use href="#i-e_happy"/></svg></button><button id="feedBtn" type="button" aria-label="마을 소식" aria-expanded="false"><svg class="ico" aria-hidden="true"><use href="#i-memo"/></svg></button><button id="sndBtn" type="button" aria-label="소리"></button></div>
+  <div class="emorow"><button id="emoBtn" type="button" aria-label="감정" aria-expanded="false"><svg class="ico" aria-hidden="true"><use href="#i-e_happy"/></svg></button><button id="feedBtn" type="button" aria-label="마을 소식" aria-expanded="false"><svg class="ico" aria-hidden="true"><use href="#i-memo"/></svg></button><button id="sndBtn" type="button" aria-label="소리"></button><button id="guideBtn" type="button" aria-label="설명 보기"><svg class="ico" aria-hidden="true"><use href="#i-book"/></svg><span>설명</span></button></div>
 </div>
 <div id="feed" hidden aria-live="polite"><div class="fhead"><b>마을 소식</b><button id="feedX" type="button" aria-label="닫기">×</button></div><div id="feedList"></div></div>
 <div id="gamePanel" hidden>
@@ -2001,6 +2009,11 @@ $('#nick').addEventListener('input',()=>{if(!nk.on){nk.base=$('#nick').value;}})
 drawNameKb();
 // 처음 화면은 항상 나라 고르기예요 (전에 고른 나라는 눌린 채로 보여요)
 applyI18n();
+// 설명(게임 가이드): 게임은 그대로 두고 위에 설명 페이지를 띄워요
+function openGuide(){const f=$('#guideFr');if(!f.getAttribute('src'))f.src='guide/index.html';setTray(false);if(feedOpen)setFeed(false);$('#guideOv').hidden=false;logEv('guide',{});sfx('pop');}
+function closeGuide(){$('#guideOv').hidden=true;}
+$('#guideBtn').onclick=openGuide;$('#guideX').onclick=closeGuide;
+document.addEventListener('keydown',e=>{if(e.key==='Escape'&&!$('#guideOv').hidden)closeGuide();});
 $('#sndBtn').onclick=()=>{audioInit();if(AC)AC.resume().catch(()=>{});sndMode=(sndMode+2)%3;try{localStorage.setItem('ht-snd',String(sndMode));}catch(e){}soundApply();sfx('pop');
   toastMsg(ic(sndMode===2?'music':sndMode===1?'spk':'phoneoff')+' '+['소리 꺼요','효과음만','음악 + 효과음'][sndMode],'');};
 // 들어가기 전에 빠진 것을 알려 줘요: 이름 · 색깔 · 취미
