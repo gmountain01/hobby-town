@@ -445,15 +445,14 @@ met:':party: 만났어요! 미션 끝!',promise:':promise: 약속했어요!',sta
 const LANGS={en:'English',vi:'Tiếng Việt',zh:'中文',ru:'Русский',mn:'Монгол',uz:'Oʻzbekcha',id:'Bahasa Indonesia',es:'Español'};
 const LANG_AI={en:'English',vi:'Vietnamese',zh:'Simplified Chinese',ru:'Russian',mn:'Mongolian (Cyrillic)',uz:'Uzbek (Latin script)',id:'Indonesian',es:'Spanish'};
 /* 임시 국가 목록 — 참가국 파일이 오면 여기만 바꾸면 돼요 (f: 국기, n: 그 나라 말 이름, ko: 한국어 이름, l: 화면 언어) */
-// 참가 30개국 (2026-11-08 수업). 지역 순서·나라 순서는 참가자 명단 그대로
+// 참가 30개국 + 한국 (2026-11-08 수업). 지역 순서는 명단대로, 지역 안 나라는 가나다순
 const COUNTRIES=[
-  {id:'vn',f:'🇻🇳',n:'Việt Nam',ko:'베트남',l:'vi',r:'아시아'},{id:'jp',f:'🇯🇵',n:'日本',ko:'일본',l:'ja',r:'아시아'},{id:'th',f:'🇹🇭',n:'ประเทศไทย',ko:'태국',l:'th',r:'아시아'},{id:'in',f:'🇮🇳',n:'भारत · India',ko:'인도',l:'hi',r:'아시아'},{id:'id',f:'🇮🇩',n:'Indonesia',ko:'인도네시아',l:'id',r:'아시아'},{id:'my',f:'🇲🇾',n:'Malaysia',ko:'말레이시아',l:'ms',r:'아시아'},{id:'mn',f:'🇲🇳',n:'Монгол Улс',ko:'몽골',l:'mn',r:'아시아'},{id:'lk',f:'🇱🇰',n:'ශ්‍රී ලංකාව',ko:'스리랑카',l:'si',r:'아시아'},{id:'la',f:'🇱🇦',n:'ລາວ',ko:'라오스',l:'lo',r:'아시아'},{id:'cn',f:'🇨🇳',n:'中国',ko:'중국',l:'zh',r:'아시아'},{id:'kh',f:'🇰🇭',n:'កម្ពុជា',ko:'캄보디아',l:'km',r:'아시아'},
-  {id:'uz',f:'🇺🇿',n:'Oʻzbekiston',ko:'우즈베키스탄',l:'uz',r:'러시아·중앙아시아'},{id:'ru',f:'🇷🇺',n:'Россия',ko:'러시아',l:'ru',r:'러시아·중앙아시아'},{id:'kz',f:'🇰🇿',n:'Қазақстан',ko:'카자흐스탄',l:'kk',r:'러시아·중앙아시아'},{id:'kg',f:'🇰🇬',n:'Кыргызстан',ko:'키르기스스탄',l:'ky',r:'러시아·중앙아시아'},
-  {id:'py',f:'🇵🇾',n:'Paraguay',ko:'파라과이',l:'es',r:'중남미'},{id:'mx',f:'🇲🇽',n:'México',ko:'멕시코',l:'es',r:'중남미'},{id:'br',f:'🇧🇷',n:'Brasil',ko:'브라질',l:'pt',r:'중남미'},{id:'ar',f:'🇦🇷',n:'Argentina',ko:'아르헨티나',l:'es',r:'중남미'},{id:'ec',f:'🇪🇨',n:'Ecuador',ko:'에콰도르',l:'es',r:'중남미'},{id:'gt',f:'🇬🇹',n:'Guatemala',ko:'과테말라',l:'es',r:'중남미'},
+  {id:'la',f:'🇱🇦',n:'ລາວ',ko:'라오스',l:'lo',r:'아시아'},{id:'my',f:'🇲🇾',n:'Malaysia',ko:'말레이시아',l:'ms',r:'아시아'},{id:'mn',f:'🇲🇳',n:'Монгол Улс',ko:'몽골',l:'mn',r:'아시아'},{id:'vn',f:'🇻🇳',n:'Việt Nam',ko:'베트남',l:'vi',r:'아시아'},{id:'lk',f:'🇱🇰',n:'ශ්‍රී ලංකාව',ko:'스리랑카',l:'si',r:'아시아'},{id:'in',f:'🇮🇳',n:'भारत · India',ko:'인도',l:'hi',r:'아시아'},{id:'id',f:'🇮🇩',n:'Indonesia',ko:'인도네시아',l:'id',r:'아시아'},{id:'jp',f:'🇯🇵',n:'日本',ko:'일본',l:'ja',r:'아시아'},{id:'cn',f:'🇨🇳',n:'中国',ko:'중국',l:'zh',r:'아시아'},{id:'kh',f:'🇰🇭',n:'កម្ពុជា',ko:'캄보디아',l:'km',r:'아시아'},{id:'th',f:'🇹🇭',n:'ประเทศไทย',ko:'태국',l:'th',r:'아시아'},{id:'kr',f:'🇰🇷',n:'대한민국',ko:'한국',l:'ko',r:'아시아'},
+  {id:'ru',f:'🇷🇺',n:'Россия',ko:'러시아',l:'ru',r:'러시아·중앙아시아'},{id:'uz',f:'🇺🇿',n:'Oʻzbekiston',ko:'우즈베키스탄',l:'uz',r:'러시아·중앙아시아'},{id:'kz',f:'🇰🇿',n:'Қазақстан',ko:'카자흐스탄',l:'kk',r:'러시아·중앙아시아'},{id:'kg',f:'🇰🇬',n:'Кыргызстан',ko:'키르기스스탄',l:'ky',r:'러시아·중앙아시아'},
+  {id:'gt',f:'🇬🇹',n:'Guatemala',ko:'과테말라',l:'es',r:'중남미'},{id:'mx',f:'🇲🇽',n:'México',ko:'멕시코',l:'es',r:'중남미'},{id:'br',f:'🇧🇷',n:'Brasil',ko:'브라질',l:'pt',r:'중남미'},{id:'ar',f:'🇦🇷',n:'Argentina',ko:'아르헨티나',l:'es',r:'중남미'},{id:'ec',f:'🇪🇨',n:'Ecuador',ko:'에콰도르',l:'es',r:'중남미'},{id:'py',f:'🇵🇾',n:'Paraguay',ko:'파라과이',l:'es',r:'중남미'},
   {id:'us',f:'🇺🇸',n:'United States',ko:'미국',l:'en',r:'북미'},{id:'ca',f:'🇨🇦',n:'Canada',ko:'캐나다',l:'en',r:'북미'},
-  {id:'fr',f:'🇫🇷',n:'France',ko:'프랑스',l:'fr',r:'유럽'},{id:'bg',f:'🇧🇬',n:'България',ko:'불가리아',l:'bg',r:'유럽'},{id:'ua',f:'🇺🇦',n:'Україна',ko:'우크라이나',l:'uk',r:'유럽'},{id:'tr',f:'🇹🇷',n:'Türkiye',ko:'튀르키예',l:'tr',r:'유럽'},{id:'de',f:'🇩🇪',n:'Deutschland',ko:'독일',l:'de',r:'유럽'},
+  {id:'de',f:'🇩🇪',n:'Deutschland',ko:'독일',l:'de',r:'유럽'},{id:'bg',f:'🇧🇬',n:'България',ko:'불가리아',l:'bg',r:'유럽'},{id:'ua',f:'🇺🇦',n:'Україна',ko:'우크라이나',l:'uk',r:'유럽'},{id:'tr',f:'🇹🇷',n:'Türkiye',ko:'튀르키예',l:'tr',r:'유럽'},{id:'fr',f:'🇫🇷',n:'France',ko:'프랑스',l:'fr',r:'유럽'},
   {id:'nz',f:'🇳🇿',n:'New Zealand',ko:'뉴질랜드',l:'en',r:'오세아니아'},{id:'au',f:'🇦🇺',n:'Australia',ko:'호주',l:'en',r:'오세아니아'},
-  {id:'kr',f:'🇰🇷',n:'대한민국',ko:'한국',l:'ko',r:'한국'},
   {id:'xx',f:'🌏',n:'Other',ko:'다른 나라',l:'en',r:''}
 ];
 const ICON={'수영':'swim','농구':'ball','게임':'game','산책':'walk','요리':'cook','등산':'hike','영화':'movie','자전거':'bike','음악':'music',
