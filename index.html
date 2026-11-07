@@ -1990,11 +1990,13 @@ function drawHobby(){if(!picked.hobby){$('#hName').innerHTML='<span class="qmark
 function drawHGrid(){$('#hgrid').innerHTML=HK.map(h=>'<button class="hb" type="button" data-h="'+h+'" aria-pressed="'+(picked.hobby&&h===me.hobby)+'">'+icw(h)+esc(h)+'</button>').join('');}
 drawHobby();drawHGrid();
 $('#hgrid').onclick=ev=>{const b=ev.target.closest('[data-h]');if(!b)return;me.hobby=b.dataset.h;picked.hobby=true;if(me.name)logEv('hobby',{h:me.hobby});drawHobby();drawHGrid();speak(me.hobby);checkNeed(false);};
-$('#countries').innerHTML=COUNTRIES.map((c,i)=>(c.r&&(i===0||COUNTRIES[i-1].r!==c.r)?'<h3 class="creg">'+esc(c.r)+'</h3>':(!c.r?'<h3 class="creg"></h3>':''))+'<button class="cty" type="button" data-cty="'+c.id+'" aria-pressed="'+(c.id===me.country)+'"><span class="f">'+c.f+'</span><b>'+esc(c.n)+'</b><small>'+esc(c.ko)+'</small></button>').join('');
+// 나라 목록: 지금 고른 나라가 눌린 채로 보여요 (돌아가기로 와도 맞게)
+function drawCountries(){$('#countries').innerHTML=COUNTRIES.map((c,i)=>(c.r&&(i===0||COUNTRIES[i-1].r!==c.r)?'<h3 class="creg">'+esc(c.r)+'</h3>':(!c.r?'<h3 class="creg"></h3>':''))+'<button class="cty" type="button" data-cty="'+c.id+'" aria-pressed="'+(c.id===me.country)+'"><span class="f">'+c.f+'</span><b>'+esc(c.n)+'</b><small>'+esc(c.ko)+'</small></button>').join('');}
+drawCountries();
 function showStep2(){const c=ctyOf();$('#step1').hidden=true;$('#step2').hidden=false;$('#ctyTitle').textContent=c.f+' '+c.ko;
   applyI18n();$('#nick').placeholder=T('namePh');$('#soundMsg').textContent='';}
 $('#countries').onclick=ev=>{const b=ev.target.closest('[data-cty]');if(!b)return;me.country=b.dataset.cty;me.lang=ctyOf().l;save();showStep2();};
-$('#back').onclick=()=>{$('#step2').hidden=true;$('#step1').hidden=false;};
+$('#back').onclick=()=>{drawCountries();$('#step2').hidden=true;$('#step1').hidden=false;const on=document.querySelector('#countries [aria-pressed="true"]');if(on)on.scrollIntoView({block:'center'});};
 $('#soundBtn').onclick=()=>{speak('안녕하세요');pickVoice();
   let has=true;try{const vs=speechSynthesis.getVoices();has=!('speechSynthesis' in window)?false:(vs.length===0||!!koVoice);}catch(e){has=false;}
   $('#soundMsg').innerHTML=has?tx(T('soundOk')):tx(T('soundNo'));};
