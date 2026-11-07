@@ -893,8 +893,15 @@ npcs.forEach(n=>{n.home={x:n.x,z:n.z};});
 let visitor=null,lastBusy=performance.now(),visitCool=0;const returning=new Set();
 function busyNow(){lastBusy=performance.now();}
 // 친구와 대화 중(서로 쓰는 중·대답 기다리는 중·최근 40초 안에 대화)이면 AI NPC가 오지 않아요
-let lastPeerChat=0;
-function inPeerChat(){if(performance.now()-lastPeerChat<40000)return true;
+let lastPeerChat=-1e9;
+// 사람끼리 어울리는 중이면 NPC가 끼어들지 않아요:
+//  · 친구와 말을 주고받은 뒤 90초 · 옆 친구(12칸 안)가 말하거나 스티커를 보낸 뒤 60초
+//  · 친구가 바로 옆(5칸 안)에 서 있을 때 · 서로 쓰는 중이거나 대답을 기다릴 때
+let lastNearSocial=-1e9;
+const nearMe=(e,d)=>e&&e.g&&player.g&&d2(player.g.position,e.g.position.x,e.g.position.z)<d;
+function noteSocial(e){if(!e||e.kind!=='peer'||nearMe(e,12))lastNearSocial=performance.now();}
+function inPeerChat(){const now=performance.now();if(now-lastPeerChat<90000||now-lastNearSocial<60000)return true;
+  for(const e of peers.values())if(e.name&&nearMe(e,5))return true;
   for(const e of peers.values())if(e.typK==='me')return true;
   for(const k in pconv){const c=pconv[k];if(c&&c.wait&&!c.done)return true;}
   try{return typSent!=='';}catch(e){return false;}}
@@ -1161,8 +1168,8 @@ function onPeers(ch){
     {const a=pr.act,sp=a&&SPOT[a.s],h=a&&HK.includes(a.h)?a.h:null;
      if(sp&&h){if(!e.act||e.act.spot!==sp||e.act.h!==h){feed(W+': '+actLine(sp,h));if(e.actTag)untag(e.actTag);e.act={spot:sp,h,t0:performance.now()};e.actTag=tag('actic',icw(h),()=>e.g.position,3.1);}}
      else if(e.act){e.act=null;if(e.actTag){untag(e.actTag);e.actTag=null;}e.g.position.y=0;resetLimbs(e.g);}}
-    if(pr.say&&typeof pr.say.text==='string'&&pr.say.ts!==e.sayTs){e.sayTs=pr.say.ts;bubble(e,pr.say.text);feed(W+': '+esc(plain(pr.say.text).slice(0,90)));}
-    if(pr.emo&&typeof pr.emo.k==='string'&&pr.emo.ts!==e.emoTs){e.emoTs=pr.emo.ts;showEmo(e,pr.emo.k);if(EMOS.includes(pr.emo.k))feed(W+' '+ic(pr.emo.k));}
+    if(pr.say&&typeof pr.say.text==='string'&&pr.say.ts!==e.sayTs){e.sayTs=pr.say.ts;noteSocial(e);bubble(e,pr.say.text);feed(W+': '+esc(plain(pr.say.text).slice(0,90)));}
+    if(pr.emo&&typeof pr.emo.k==='string'&&pr.emo.ts!==e.emoTs){e.emoTs=pr.emo.ts;noteSocial(e);showEmo(e,pr.emo.k);if(EMOS.includes(pr.emo.k))feed(W+' '+ic(pr.emo.k));}
     if(e.gs){const prev=e.gsPrev;if(prev&&e.gs.s>prev.s)feed(W+' '+ic('dice')+' <i>+'+(e.gs.s-prev.s)+'</i> ('+e.gs.s+'점)');if(e.gs.w&&!(prev&&prev.w))feed(ic('trophy')+' '+W+' 30점! 이겼어요!');e.gsPrev={s:e.gs.s,w:e.gs.w};}
     {const vn=pr.vis&&typeof pr.vis.n==='string'?npcs.find(n=>n.name===pr.vis.n):null;
      if(vn!==e.visN){if(e.visN&&e.visN.remoteTo===e){e.visN.remoteTo=null;returning.add(e.visN);}
@@ -1235,10 +1242,12 @@ function ansSet(kind,h){
   const pk=pko(h),vb=V(h,'pl');
   if(kind==='hobby')return{cards:['제','취미는',h,'+'+(bat(h)?'이에요':'예요'),'+'+(bat(h)?'예요':'이에요'),pk],ok:['제 취미는 '+cop(h),'저는 '+eul(h)+' 좋아해요','제 취미는 '+cop(h)+'.']};
   if(kind==='where')return{cards:[pk,'+에서','+에',eul(h),vb,pk==='학교'?'공원':'학교'],ok:[pk+'에서 '+eul(h)+' '+vb,pk+'에서 '+vb]};
-  if(kind==='when')return{cards:['토요일','일요일','+에','+에서',eul(h),vb],ok:['토요일','일요일'].map(d=>d+'에 '+eul(h)+' '+vb)};
+  if(kind==='when')return{cards:['토요일','일요일','+에','+에서',eul(h),vb],ok:['토요일','일요일'].map(d=>d+'에 '+eul(h)+' '+vb),
+    rx:n=>new RegExp('^(토요일|일요일|주말)(오전|오후)?(한|두|세|네|다섯|여섯|일곱|여덟|아홉|열한|열두|열)?(시)?에('+norm(eul(h))+')?'+norm(vb)+'$').test(n)};
   if(kind==='propose')return{cards:['네,','좋아요','아니요,','미안해요'],ok:['네, 좋아요','아니요, 미안해요']};
   const ok=[];for(const d of ['토요일','일요일'])for(const t of TIMES)ok.push(d+' '+t[0]+'에 만나요');
-  return{cards:['토요일','일요일'].concat(TIMES.map(t=>t[0]),['+에','+에서','만나요']),ok};
+  return{cards:['토요일','일요일'].concat(TIMES.map(t=>t[0]),['+에','+에서','만나요']),ok,
+    rx:n=>/^(토요일|일요일)(오전|오후)?(한|두|세|네|다섯|여섯|일곱|여덟|아홉|열한|열두|열)시(반)?에만나요$/.test(n)};
 }
 // 질문하는 사람의 카드
 function askSet(kind,h){
@@ -1268,6 +1277,8 @@ async function aiReact(e,q,ans){
 async function checkBuild(b,question,hobby,rerender){
   const txt=buildText(b),n=norm(txt);
   if(b.set.ok.some(o=>norm(o)===n))return{ok:true,text:txt};
+  // 정답 목록과 달라도 문법이 맞는 문장이면 맞아요 (예: 오전 두 시부터 오후 세 시까지 운동을 해요)
+  try{if(b.set.rx&&b.set.rx(n))return{ok:true,text:txt};}catch(e){}
   if(sampleFn&&aiState!=='off'&&n.length>1){
     b.busy=true;rerender();
     try{
@@ -1564,9 +1575,16 @@ const HRS=['한','두','세','네','다섯','여섯','일곱','여덟','아홉',
 function timeSet(h){const o=eul(h),v=V(h,'pl'),ok=[];
   const hs=['두','세','네','다섯'];
   for(const ap of ['','오전 ','오후 '])for(let a=0;a<hs.length;a++)for(let b=a+1;b<hs.length;b++)ok.push(ap+hs[a]+' 시부터 '+hs[b]+' 시까지 '+o+' '+v);
-  return{cards:['오전','오후'].concat(hs.map(x=>x+' 시'),['+부터','+까지','+에',o,v]),ok,fix:'오후 세 시부터 네 시까지 '+o+' '+v};}
-function parseSpan(t){const m=norm(t).match(/(오전|오후)?(한|두|세|네|다섯|여섯|일곱|여덟|아홉|열한|열두|열)시부터(한|두|세|네|다섯|여섯|일곱|여덟|아홉|열한|열두|열)시까지/);
-  if(!m)return{a:15,b:16,ap:'오후'};const pm=m[1]!=='오전';const toH=w=>{const n=HRS.indexOf(w)+1;return pm&&n<12?n+12:n;};return{a:toH(m[2]),b:toH(m[3]),ap:m[1]||''};}
+  return{cards:['오전','오후'].concat(hs.map(x=>x+' 시'),['+부터','+까지','+에',o,v]),ok,fix:'오후 세 시부터 네 시까지 '+o+' '+v,rx:n=>timeOk(n,h)};}
+// 시간 문장 읽기: "오전 두 시부터 오후 세 시까지"처럼 앞뒤에 오전/오후를 따로 써도 돼요
+const SPAN_RX=/^(오전|오후)?(한|두|세|네|다섯|여섯|일곱|여덟|아홉|열한|열두|열)시부터(오전|오후)?(한|두|세|네|다섯|여섯|일곱|여덟|아홉|열한|열두|열)시까지/;
+function parseSpan(t){const m=norm(t).match(SPAN_RX);
+  if(!m)return{a:15,b:16,ap:'오후'};
+  const toH=(w,ap)=>{const n=HRS.indexOf(w)+1;if(ap==='오전')return n===12?0:n;if(ap==='오후')return n<12?n+12:n;return n<12&&n<7?n+12:n;}; // 오전/오후가 없으면 1~6시는 오후로 봐요
+  const ap1=m[1]||'',ap2=m[3]||ap1;let a=toH(m[2],ap1),b=toH(m[4],ap2);const same=a===b;if(b<=a)b+=24;return{a,b,ap:ap1,same};}
+// 문법이 맞는 시간 문장인지: 시작과 끝이 같지 않고, 뒤에 그 취미 + 해요가 와요
+function timeOk(n,h){const m=n.match(SPAN_RX);if(!m)return false;const rest=n.slice(m[0].length);const o=norm(eul(h)),v=norm(V(h,'pl'));
+  if(!(rest===o+v||rest===v))return false;return !parseSpan(n).same;}
 let actS=null, clockRun=null;
 function openAct(sp){
   stopAct();talkTarget=null;sheetKind='act';sheet.classList.remove('tall');
@@ -1748,8 +1766,8 @@ function toastMsg(html,en,say){
 /* ---------- clock ---------- */
 // 마을 시계: 현실 시간이 아니라 수업용 시계예요. 오전 9시에 시작해서 1초에 2분씩 흘러요 (하루 = 약 12분)
 let gm=9*60;
-function timeFull(){const h=Math.floor(gm/60),m=Math.floor((gm%60)/10)*10;return ampm(h)+' '+HW[h%12]+' 시'+(m?' '+SINO[m/10]+' 분':'');}
-function drawClock(){const h=Math.floor(gm/60),m=Math.floor((gm%60)/10)*10;$('#clock').innerHTML='<b>'+(window.innerWidth>420?'토요일 ':'')+timeFull()+'</b><span>'+(h%12||12)+':'+String(m).padStart(2,'0')+'</span>';}
+function timeFull(){const g=((gm%1440)+1440)%1440,h=Math.floor(g/60),m=Math.floor((g%60)/10)*10;return ampm(h)+' '+HW[h%12]+' 시'+(m?' '+SINO[m/10]+' 분':'');}
+function drawClock(){const g=((gm%1440)+1440)%1440,h=Math.floor(g/60),m=Math.floor((g%60)/10)*10;$('#clock').innerHTML='<b>'+(window.innerWidth>420?'토요일 ':'')+timeFull()+'</b><span>'+(h%12||12)+':'+String(m).padStart(2,'0')+'</span>';}
 
 /* ---------- input ---------- */
 // 위치는 계속 보내지 않고 '가려는 곳'만 한 번 보내요 (접속자가 많아도 메시지가 적게 나가요)
@@ -1830,7 +1848,7 @@ function frame(now){
   spotRingMat.opacity=.55+Math.sin(now/260)*.35;disco.rotation.y+=dt*1.5;
   for(let i=0;i<SCREENS.length;i++)SCREENS[i].emissive.setHSL(((now/4000)+i*.17)%1,.55,.32);
   for(let i=floaters.length-1;i>=0;i--){const f=floaters[i];f.life+=dt;f.p.y+=dt*1.1;f.t.el.style.opacity=String(Math.max(0,1-f.life/1.6));if(f.life>1.6){untag(f.t);floaters.splice(i,1);}}
-  if(clockRun){gm+=dt*clockRun.speed;if(gm>=clockRun.to){gm=clockRun.to;clockRun=null;}}else{gm+=dt*2;if(gm>=24*60)gm-=24*60;}clockT+=dt;if(clockT>.25){clockT=0;drawClock();applyDayNight(gm/60);}
+  if(clockRun){gm+=dt*clockRun.speed;if(gm>=clockRun.to){gm=clockRun.to%1440;clockRun=null;}}else{gm+=dt*2;if(gm>=24*60)gm-=24*60;}clockT+=dt;if(clockT>.25){clockT=0;drawClock();applyDayNight((((gm%1440)+1440)%1440)/60);}
   renderer.render(scene,camera);
   const w=window.innerWidth,h=window.innerHeight;
   for(const t of tags){if(t.hide){t.el.style.display='none';continue;}if(t.cull){const gp=t.getPos(),dd=Math.hypot(gp.x-camLook.x,gp.z-camLook.z);t.far=t.far?dd>18:dd>22; /* 경계에서 깜빡이지 않게 여유를 둬요 */ if(t.far){t.el.style.display='none';continue;}}tmp.copy(t.getPos());tmp.y+=t.dy;tmp.project(camera);
@@ -1839,7 +1857,7 @@ function frame(now){
   requestAnimationFrame(frame);
 }
 requestAnimationFrame(frame);drawClock();markPlaces();updateMissions();
-if(false)window.__t={SPOTS,startAct,player,openAct,game,TILES,gq:()=>gq,npcs,setGm:v=>{gm=v;},actS:()=>actS,convs,pconv,pb:()=>pb,camera,renderer,scene};
+if(false)window.__t={SPOTS,startAct,player,openAct,game,TILES,gq:()=>gq,npcs,setGm:v=>{gm=v;},actS:()=>actS,convs,pconv,pb:()=>pb,camera,renderer,scene,inPeerChat,dbg:()=>({lp:performance.now()-lastPeerChat,ln:performance.now()-lastNearSocial,near:[...peers.values()].map(e=>e.name+':'+d2(player.g.position,e.g.position.x,e.g.position.z).toFixed(1)),typ:typSent,wait:Object.values(pconv).some(c=>c.wait&&!c.done)})};
 
 /* ---------- 교사용 학습 기록 분석 ---------- */
 const CTX={npc:'NPC 대화',peer_ask:'친구에게 묻기',peer_answer:'친구에게 대답',act_place:'장소 활동 ① 에서',act_time:'장소 활동 ② 부터·까지',game:'보드게임',obj:'이/그/저'};
