@@ -1250,7 +1250,8 @@ function ansSet(kind,h){
   if(kind==='propose')return{cards:['네,','좋아요','아니요,','미안해요'],ok:['네, 좋아요','아니요, 미안해요']};
   const ok=[];for(const d of ['토요일','일요일'])for(const t of TIMES)ok.push(d+' '+t[0]+'에 만나요');
   return{cards:['토요일','일요일'].concat(TIMES.map(t=>t[0]),['+에','+에서','만나요']),ok,
-    rx:n=>/^(토요일|일요일)(오전|오후)?(한|두|세|네|다섯|여섯|일곱|여덟|아홉|열한|열두|열)시(반)?에만나요$/.test(n)};
+    // 요일만, 요일+시간, 요일에+시간에, 시간에+요일에 모두 맞아요 (예: 일요일 두 시에 / 일요일에 두 시에 / 토요일에 만나요)
+    rx:n=>/^(토요일|일요일)(에)?((오전|오후)?(한|두|세|네|다섯|여섯|일곱|여덟|아홉|열한|열두|열)시(반)?)?에만나요$/.test(n)||/^(오전|오후)?(한|두|세|네|다섯|여섯|일곱|여덟|아홉|열한|열두|열)시(반)?에(토요일|일요일)에만나요$/.test(n)};
 }
 // 질문하는 사람의 카드
 function askSet(kind,h){
@@ -1469,7 +1470,7 @@ async function npcSend(){
   await new Promise(r=>setTimeout(r,600));
   if(convs[e.key]!==c)return;c.thinking=false;
   if(endLine){c.done=true;c.endLine=react+' '+endLine;}
-  else{c.stage=NPC_FLOW[NPC_FLOW.indexOf(st)+1];c.react=react;c.b=newBuild(npcSetFor(e,c.stage));}
+  else{c.stage=NPC_FLOW[NPC_FLOW.indexOf(st)+1];c.react=c.stage==='meet'?'':react;c.b=newBuild(npcSetFor(e,c.stage));} // 만날 시간 질문은 이미 '네, 좋아요!'로 시작해서 반응을 겹치지 않아요
   const say=c.done?c.endLine:(c.react+' '+npcLine(e,c));bubble(e,say);speak(say);chatPush(e,'t',say);
   if(talkTarget===e)renderTalk();
 }
@@ -1860,7 +1861,7 @@ function frame(now){
   requestAnimationFrame(frame);
 }
 requestAnimationFrame(frame);drawClock();markPlaces();updateMissions();
-if(false)window.__t={SPOTS,startAct,player,openAct,game,TILES,gq:()=>gq,npcs,setGm:v=>{gm=v;},actS:()=>actS,convs,pconv,pb:()=>pb,camera,renderer,scene,inPeerChat,dbg:()=>({lp:performance.now()-lastPeerChat,ln:performance.now()-lastNearSocial,near:[...peers.values()].map(e=>e.name+':'+d2(player.g.position,e.g.position.x,e.g.position.z).toFixed(1)),typ:typSent,wait:Object.values(pconv).some(c=>c.wait&&!c.done)})};
+if(false)window.__t={SPOTS,startAct,player,openAct,game,TILES,gq:()=>gq,npcs,setGm:v=>{gm=v;},actS:()=>actS,convs,pconv,pb:()=>pb,camera,renderer,scene,inPeerChat,markPlaces,updateMissions,apptText,parseMeet,prog,ansSet,checkBuild,newBuild,buildText,dbg:()=>({lp:performance.now()-lastPeerChat,ln:performance.now()-lastNearSocial,near:[...peers.values()].map(e=>e.name+':'+d2(player.g.position,e.g.position.x,e.g.position.z).toFixed(1)),typ:typSent,wait:Object.values(pconv).some(c=>c.wait&&!c.done)})};
 
 /* ---------- 교사용 학습 기록 분석 ---------- */
 const CTX={npc:'NPC 대화',peer_ask:'친구에게 묻기',peer_answer:'친구에게 대답',act_place:'장소 활동 ① 에서',act_time:'장소 활동 ② 부터·까지',game:'보드게임',obj:'이/그/저'};
