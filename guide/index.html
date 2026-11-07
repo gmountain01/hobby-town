@@ -44,9 +44,9 @@ nav.toc a:focus-visible,a:focus-visible{outline:3px solid var(--pin);outline-off
 .txt p{margin:0}
 .legend{list-style:none;margin:10px 0 0;padding:0;display:flex;flex-direction:column;gap:6px}
 .legend li{display:flex;align-items:center;gap:8px;font-size:17px}
-.pin{flex:none;display:grid;place-items:center;width:26px;height:26px;border-radius:50%;background:var(--pin);color:#fff;font:700 15px/1 var(--body);border:2px solid var(--paper);box-shadow:0 1px 3px rgba(0,0,0,.25)}
+.pin{flex:none;display:inline-flex;align-items:center;justify-content:center;padding:0;line-height:1;text-align:center;width:26px;height:26px;border-radius:50%;background:var(--pin);color:#fff;font:700 15px/1 var(--body);border:2px solid var(--paper);box-shadow:0 1px 3px rgba(0,0,0,.25)}
 .key{margin-top:30px;background:var(--paper);border:1px solid var(--line);border-radius:18px;padding:16px 18px;display:flex;flex-wrap:wrap;gap:10px 22px;font-size:17px}
-.key span{display:flex;align-items:center;gap:8px}
+.key>span{display:flex;align-items:center;gap:8px}
 .sw{width:22px;height:22px;border-radius:7px;border:2px solid var(--ink)}
 .end{margin-top:44px;text-align:center;font-family:var(--display);font-size:clamp(28px,5vw,40px)}
 @media (max-width:560px){.step{grid-template-columns:minmax(0,1fr);gap:12px;padding:14px}.phone{width:min(80%,300px);margin:0 auto}.txt h3{font-size:24px}body{font-size:17px}}
